@@ -4,3 +4,4 @@ dist/
 .dev.vars
 *.log
 *.tsbuildinfo
+spikes/j0/material/*.wav
