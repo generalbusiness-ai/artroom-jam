@@ -1,9 +1,10 @@
 # J0: hum to theme
 
-Date: 2026-10-05; updated 2026-10-06. Status: first local measurements plus one
-authorized hosted comparison and a local reference exercise in Chrome. The
-full J0 spike remains open: five real phrases by two people, their singer
-judgments and their microphone/browser recording flows are still owed.
+Date: 2026-10-05; updated 2026-10-06. Status: first local measurements, one
+authorized hosted comparison, a Chrome reference exercise and five supplied
+recordings processed locally. The full J0 spike remains open: two-singer
+coverage and each singer's judgments are unconfirmed; the new recordings have
+not been exercised in the browser or through microphone capture.
 The source and first measurements were preserved in commit `6cd561f`; the
 hosted protocol was committed as `f726c6c` before sending audio.
 
@@ -322,6 +323,54 @@ singer to J0's required five-phrase, two-person sample.
 
 ## What a person must now do to judge
 
+Update, 2026-10-06: five real recordings were supplied and processed locally
+under the [frozen whole-file protocol](../spikes/j0/user-five-protocol.md).
+All were mono 44.1 kHz AIFF: four 16-bit PCM and one signed 8-bit PCM. Conversion
+preserved every source PCM sample exactly, expanding the 8-bit integers to
+16-bit integers. Four recordings exceeded the harness's suggested eight
+seconds; all were processed whole, below the explicit 12-second bound. No
+normalization, denoising, pitch correction, note repair or threshold retuning
+was applied, and no new audio was sent to a provider.
+
+| Local input ID | Whole input s | Notes | Node transcription ms |
+|---|---|---|---|
+| p1 | 10.365397 | 19 | unavailable after checker failure |
+| p2 | 8.414943 | 20 | 296.636 |
+| p3 | 6.650204 | 18 | 301.768 |
+| p4 | 10.644036 | 23 | 365.735 |
+| p5 | 8.879365 | 20 | 504.581 |
+
+Each file received one tracker call with the existing defaults. The first
+file's rendering finished before a readback assertion confused JavaScript
+negative zero with integer PCM zero. The corrected checker accepts both as
+PCM zero. Its event starts and durations were recovered on the known tracker
+grid from saved MIDI and verified against byte-identical MIDI and
+sample-identical synthesized playback and comparison. No transcription was
+repeated. Its initial timings, exact pitch estimates and confidence were lost
+before journaling and are recorded as unavailable. Subsequent results were
+journaled before rendering. This was a verifier correction, not a change to
+the tracker or a second attempt to improve its musical output.
+
+All five event lists passed bounds, ordering, MIDI range and overlap checks.
+Their MIDI files parsed back with matching pitches, original velocities,
+starts and durations within tick rounding; decoded playback/comparison WAV
+samples matched the intended PCM encoding. No frame was trimmed from any
+input. The tracker naturally analyzes complete 2048-sample windows at 441-sample
+hops: the unwindowed final tails were 395, 375, 166, 335 and 129 samples,
+respectively (all below 9 ms). All original hashes were checked again after
+processing and were unchanged. The tracker does not expose counts of candidate
+notes it drops through its existing gates; none are invented in the report.
+
+The ignored local `spikes/j0/work/out/user-five/summary.json` and individual
+JSON records contain input identities, hashes, note events, separate conversion
+and transcription times, readback checks and exact output paths. Each recording
+has a `-source.wav`, `-playback.wav`, `-compare.wav` and `.mid`; each comparison
+plays the full original, one second of silence, then its literal transcription.
+These human recordings, derived audio, file-name mapping and note results
+remain local and are not committed or published. Singer identities and verdicts
+are still unknown; five files do not prove two singers or their judgments.
+These are Node runs, with no new browser or microphone coverage.
+
 Listen in this order. Each "compare" file plays the original, one second of
 silence, then the playback. All are in `spikes/j0/work/out/`, which is not
 committed. The original wavs are in `spikes/j0/material/`.
@@ -385,13 +434,16 @@ record the phrase and judgment before selecting a remedy.
   and the band gave 6 notes. A 48 kHz resampled copy of the hum gave the same 8
   notes (the first as 46). The synth and MIDI writers were run under Node, not in
   the page; the page's WebAudio playback is separate code.
-- Done-when for J0 asks for at least five real hummed phrases by two people. I
-  have one clip, from one take.
+- Done-when for J0 asks for at least five real hummed phrases by two people,
+  judged by their singers. The original first half had one reference clip;
+  five further supplied recordings are now processed, but singer identities,
+  two-person coverage and their judgments remain unconfirmed.
 
 ## Limits
 
-- One clip, one singer, one take, with clear gaps between syllables. Humming
-  with slurs between notes, or in a noisy room, is untested.
+- The original reference was one clip, one singer, one take, with clear gaps
+  between syllables. The five new recordings add inputs but no singer judgments
+  yet. We have no labeled ground truth or confirmed legato/noisy-room coverage.
 - Two path B parameters were set after seeing this clip.
 - Pitch accuracy is not measured; there is no ground truth. "Same pitch" above
   means the two paths agree.
@@ -423,3 +475,11 @@ checks and `git diff --check`. This standalone jam repository has no
 `package.json`, `docs/testing.md` or `npm run gate`; the Artroom gate belongs
 to the parent's M4 source work. The original Node-only harness measurements
 have not been relabeled as browser tests or rerun as a full suite.
+
+For the five supplied recordings: `user-five-protocol.json`,
+`user-five-protocol.md` and `src/run-local-five.js`. Their private audio and
+transcriptions are in ignored `work/out/user-five/`. No package was installed.
+The local runner uses installed FFmpeg, Node built-ins and the existing synth,
+tracker and MIDI parser. The generated harness and transcription source were
+not changed. Syntax, local JSON/link checks, PCM conversion checks, literal
+MIDI/WAV readback and `git diff --check` cover this addition.

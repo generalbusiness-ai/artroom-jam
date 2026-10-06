@@ -35,8 +35,14 @@ or committed. This is a reference phrase by a singer in the sketch, not
 Hugh's voice. Reusing it with another model does not add a phrase or singer.
 
 Secondary material: phrases hummed by people in the harness, judged by
-their singers. Five such real phrases across two people and an actual browser
-exercise remain owed by J0.
+their singers. On 2026-10-06 the user supplied five AIFF recordings; each was
+processed whole with the existing local path B under the
+[frozen protocol](../user-five-protocol.md). Human audio and note results stay
+in ignored `work/out/user-five/`, with a local identity manifest and comparison
+playbacks. Singer identities, two-person coverage and each singer's judgment
+remain unconfirmed. The new files have not been exercised through the browser
+or microphone path. The earlier Chrome reference run does not provide that
+coverage for them.
 
 Correction, 2026-10-05 23:15: the planner's first description of the tune
 (leaps to G sharp 2, E2 and D sharp 4) came from the loudest spectral
