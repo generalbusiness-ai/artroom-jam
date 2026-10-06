@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { scriptedRun, summarize } from './harness.mjs';
+import { render } from './render.mjs';
+
+const root = fileURLToPath(new URL('.', import.meta.url));
+const name = process.argv[2] ?? 'scripted-run-1';
+if (!/^[a-z0-9-]+$/.test(name)) throw new Error('run name must contain only lower-case letters, digits and hyphens');
+const directory = path.join(root, 'work', name);
+fs.mkdirSync(path.dirname(directory), { recursive: true });
+fs.mkdirSync(directory); // Keep each run separately; an existing run is never overwritten.
+const protocolBytes = fs.readFileSync(path.join(root, 'protocol.json'));
+const protocol = JSON.parse(protocolBytes);
+const themes = JSON.parse(fs.readFileSync(path.join(root, 'themes.json'), 'utf8'));
+const record = scriptedRun(protocol, themes);
+const summary = summarize(record, protocol);
+const write = (name, value) => fs.writeFileSync(path.join(directory, name), JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+write('protocol.json', protocol);
+write('themes.json', themes);
+write('record.json', record);
+const started = performance.now();
+const audio = render(record, protocol);
+fs.writeFileSync(path.join(directory, 'synthetic.wav'), audio.wav, { flag: 'wx' });
+const { wav, ...audioEvidence } = audio;
+const result = { protocolSha256: createHash('sha256').update(protocolBytes).digest('hex'), ...summary, render: { ...audioEvidence, localRenderWallMs: performance.now() - started }, fullJ2StillOwed: protocol.fullJ2StillOwed };
+write('summary.json', result);
+console.log(JSON.stringify({ directory, ...result }, null, 2));
+if (Object.values(summary.claims).some((met) => !met)) process.exitCode = 1;

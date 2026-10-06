@@ -1,0 +1,83 @@
+Local J2 source preparation verification.
+Apple M5 Max / macOS / Node v26.10.0; shared machine, cache and load not controlled.
+No packages installed or project gate.
+
+Command: /usr/bin/time -lp node --test spikes/j2/test/harness.test.mjs
+✔ scripted listeners change theme together; historical timing survives pending changes and a decrease (24.196416ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.837542
+real 0.17
+user 0.17
+sys 0.02
+            73334784  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                8915  page reclaims
+                 180  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  15  messages sent
+                   8  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 315  involuntary context switches
+          1414651025  instructions retired
+           343957033  cycles elapsed
+            16746848  peak memory footprint
+
+Command: /usr/bin/time -lp node spikes/j2/control.mjs
+Scratch evidence retained at /var/folders/2x/wylr59t17ds36l1l7ng25y7w0000gn/T/jam-j2-control-4yanjp
+Distinguishes by assertion: round down instead of up
+Distinguishes by assertion: omit the previous-entry hold
+real 0.37
+user 0.33
+sys 0.05
+            50708480  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               18553  page reclaims
+                 430  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  50  messages sent
+                  37  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 492  involuntary context switches
+          1366097501  instructions retired
+           325895301  cycles elapsed
+            15222968  peak memory footprint
+
+Command: /usr/bin/time -lp node spikes/j2/run.mjs scripted-run-1
+Full structured result: evidence/scripted-summary.json
+real 0.09
+user 0.09
+sys 0.01
+            72728576  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5223  page reclaims
+                 104  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 198  involuntary context switches
+          2210208878  instructions retired
+           482641451  cycles elapsed
+            37686176  peak memory footprint
+

@@ -1,0 +1,238 @@
+{
+  "protocolSha256": "2016bbb82a679b5cb8bc573cfa8336adcc781a98d7226a3a0d7511f16503d1a0",
+  "evidence": "Calculated from the frozen simulation; no measured network/model performance or musical judgment",
+  "patternDeliveries": 32,
+  "deliveredBeforeStart": 32,
+  "deliveredBeforeStartPercent": 100,
+  "groups": [
+    {
+      "interpretation": 5,
+      "theme": "synthetic-c",
+      "bars": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "firstDownbeatMs": 4100,
+      "stopMs": 0
+    },
+    {
+      "interpretation": 11,
+      "theme": "synthetic-eb",
+      "bars": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "firstDownbeatMs": 10100,
+      "stopMs": 6200
+    }
+  ],
+  "derived": {
+    "origin": {
+      "seq": 5,
+      "timeMs": 100
+    },
+    "rows": [
+      {
+        "seq": 5,
+        "kind": "interpret",
+        "effectBar": 2,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 6,
+        "kind": "pattern",
+        "effectBar": 3,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 7,
+        "kind": "pattern",
+        "effectBar": 3,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 8,
+        "kind": "pattern",
+        "effectBar": 3,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 9,
+        "kind": "pattern",
+        "effectBar": 3,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 10,
+        "kind": "sing",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 11,
+        "kind": "interpret",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 12,
+        "kind": "pattern",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 13,
+        "kind": "pattern",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 14,
+        "kind": "pattern",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      },
+      {
+        "seq": 15,
+        "kind": "pattern",
+        "effectBar": 6,
+        "lookaheadMs": 2000
+      }
+    ],
+    "segments": [
+      {
+        "bar": 1,
+        "boundary": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "bpm": 120,
+        "meter": [
+          4,
+          4
+        ]
+      },
+      {
+        "bar": 2,
+        "boundary": {
+          "numerator": "2100",
+          "denominator": "1"
+        },
+        "bpm": 120,
+        "meter": [
+          4,
+          4
+        ]
+      },
+      {
+        "bar": 6,
+        "boundary": {
+          "numerator": "10100",
+          "denominator": "1"
+        },
+        "bpm": 90,
+        "meter": [
+          4,
+          4
+        ]
+      }
+    ],
+    "starts": [
+      {
+        "seq": 6,
+        "player": "synth",
+        "interpretation": 5,
+        "bar": 3
+      },
+      {
+        "seq": 7,
+        "player": "bass",
+        "interpretation": 5,
+        "bar": 3
+      },
+      {
+        "seq": 8,
+        "player": "drums",
+        "interpretation": 5,
+        "bar": 3
+      },
+      {
+        "seq": 9,
+        "player": "lead",
+        "interpretation": 5,
+        "bar": 3
+      },
+      {
+        "seq": 12,
+        "player": "synth",
+        "interpretation": 11,
+        "bar": 6
+      },
+      {
+        "seq": 13,
+        "player": "bass",
+        "interpretation": 11,
+        "bar": 6
+      },
+      {
+        "seq": 14,
+        "player": "drums",
+        "interpretation": 11,
+        "bar": 6
+      },
+      {
+        "seq": 15,
+        "player": "lead",
+        "interpretation": 11,
+        "bar": 6
+      }
+    ]
+  },
+  "claims": {
+    "deliveredBeforeStart": true,
+    "downbeat": true,
+    "secondThemeOnOneBoundary": true
+  },
+  "actualModelCalls": null,
+  "actualModelLatency": null,
+  "actualModelCost": null,
+  "musicalJudgment": null,
+  "render": {
+    "samples": 454231,
+    "seconds": 20.600045351473923,
+    "peak": 0.17639531195163727,
+    "evidence": "Synthetic scripted mix, unjudged; WAV readback checks format/count only",
+    "localRenderWallMs": 22.966375
+  },
+  "fullJ2StillOwed": [
+    "An actual authorized four-agent run and actual model latency, calls and cost",
+    "A recording of that performance and Hugh's worth-hearing judgment",
+    "At most two revisions to the harness and prompts before the existing musical stop rule"
+  ],
+  "localFiles": [
+    {
+      "path": "work/scripted-run-1/protocol.json",
+      "bytes": 1140,
+      "sha256": "925a527dd9abe28cedc2ccb74a5602c08e9a7a9068a1aec22ec133a4ddc3628e"
+    },
+    {
+      "path": "work/scripted-run-1/themes.json",
+      "bytes": 1214,
+      "sha256": "f759ed732f33038b86d623c9dc449023cf89fa7b1820b02576076f640ab01cbf"
+    },
+    {
+      "path": "work/scripted-run-1/record.json",
+      "bytes": 93171,
+      "sha256": "981ed23dfe4773bc1c7694b9f3d47d2898e2e66021ee03d79d572d712232d320"
+    },
+    {
+      "path": "work/scripted-run-1/synthetic.wav",
+      "bytes": 908506,
+      "sha256": "dfe46f4989ae1989e3a6dae7ac33452c705f13e3452a90106d9aab9ea75a693c"
+    }
+  ]
+}
