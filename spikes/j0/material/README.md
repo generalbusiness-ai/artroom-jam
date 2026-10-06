@@ -29,8 +29,8 @@ recognizable as the same tune, and did not prefer the in-page model path A.
 Planner record `475c57cac0cb27cfc729915f0919c775f23e95d7` also authorized
 hosted models and this reference audio leaving the machine, Workers AI first
 and OpenRouter second. One OpenRouter comparison has now run under the
-[frozen protocol](../hosted-protocol.md); its playback still needs a person
-to judge it. The WAV files remain ignored local files and are not published
+[frozen protocol](../hosted-protocol.md). On 2026-10-06, Hugh judged its
+playback “Not recognizable”. The WAV files remain ignored local files and are not published
 or committed. This is a reference phrase by a singer in the sketch, not
 Hugh's voice. Reusing it with another model does not add a phrase or singer.
 
