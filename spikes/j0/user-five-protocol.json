@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "date": "2026-10-06",
+  "request": "9ce8533f0fe1d8eefa0e7e864dc860f3b3969c35",
+  "promise": "42eb00945fd0efa10b224ec64444f32675219771",
+  "input_count": 5,
+  "inputs": [
+    { "id": "p1", "bytes": 914282, "sha256": "813447b1c98993ebd9cd950bfc16708855ccdb1916e7220019b66421b95c589b", "sample_frames": 457114, "bits": 16 },
+    { "id": "p2", "bytes": 742252, "sha256": "4b3e9b0141688637624ae059f7bcbe920b827623d3c35d398167cde99c527520", "sample_frames": 371099, "bits": 16 },
+    { "id": "p3", "bytes": 586602, "sha256": "a9625df16672c73af2e9fa34857c8c2f79425bda09d378aba928cbd90e6afa78", "sample_frames": 293274, "bits": 16 },
+    { "id": "p4", "bytes": 938858, "sha256": "1d553daecd345bd9f55a8721138ccb786bae187eb787936997f7d268723cb0ef", "sample_frames": 469402, "bits": 16 },
+    { "id": "p5", "bytes": 391634, "sha256": "78f603f54a2daf7553e0339024dd05e501cdaf26273f328f6e5ddd89ecdc4ac1", "sample_frames": 391580, "bits": 8 }
+  ],
+  "channels": 1,
+  "sample_rate": 44100,
+  "max_whole_file_seconds": 12,
+  "transcription_calls_per_file": 1,
+  "conversion": ["-map", "0:a:0", "-vn", "-ac", "1", "-ar", "44100", "-c:a", "pcm_s16le", "-map_metadata", "-1", "-bitexact"],
+  "tracker": "Existing src/transcribe.js transcribeHum, defaults unchanged; no normalization, denoising, trimming, pitch correction or model",
+  "tracker_parameters": {
+    "win": 2048, "hop": 441, "fmin": 70, "fmax": 700, "thresh": 0.15,
+    "rmsFloor": 0.01, "medianLen": 5, "jump": 1, "jumpFrames": 2,
+    "gapFrames": 3, "minNote": 0.06, "minConf": 0.9, "rmsRel": 0.12
+  },
+  "render": "Literal validated events and original velocities; existing synthNotes, writeMidi at 120 bpm/channel 0, original full PCM plus one second silence plus playback",
+  "privacy": "All audio, filename mappings and transcription results stay in ignored work/out/user-five/. No remote calls or public artifacts. Singer identities and judgments remain unknown.",
+  "expectations": "No expected pitches, counts, tune identities or recognizability scores supplied. Five distinct files are five supplied recordings, not proof of two people or each singer's judgment."
+}
