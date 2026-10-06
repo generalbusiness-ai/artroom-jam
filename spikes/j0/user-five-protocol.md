@@ -58,3 +58,21 @@ identity, two people, or a judgment by each singer. The current hosted result,
 Hugh's judgments on the reference and the existing Chrome reference exercise
 remain unchanged. These new local Node runs add neither browser nor microphone
 coverage. The root agent will present the playbacks for the singers' judgments.
+
+## Readback-check correction
+
+The first pass rendered its first recording before a checker assertion stopped
+on JavaScript negative zero versus integer PCM zero. The PCM encoding has only
+one zero; the checker now compares those as equal. This changes the verifier,
+not transcription. Recover the first recording's exact note-event grid from
+its saved MIDI: starts are on the existing window-center minus half-hop grid,
+durations on the 10 ms hop grid, and pitches/velocities are MIDI integers.
+Require byte-identical MIDI and sample-identical synthesized playback readback
+before accepting the recovered events. Its unrounded pitch estimates,
+confidence and initial elapsed times were not journaled before the exception
+and remain unavailable. Do not infer them or rerun transcription.
+
+Journal every subsequent literal transcription before rendering. A single
+explicit resume from validated local journals processes only the remaining
+four files. The first attempt marker is retained, and all five source hashes
+are checked again. This preserves one tracker call per supplied recording.

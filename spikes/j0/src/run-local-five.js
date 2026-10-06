@@ -53,13 +53,16 @@ function checkWav(file, expected, sr) {
   assert.equal(read.sr, sr); assert.equal(read.samples.length, expected.length);
   for (let i = 0; i < expected.length; i++) {
     const quantized = Math.trunc(Math.max(-1, Math.min(1, expected[i])) * 32767) / 32768;
-    assert.equal(read.samples[i], quantized);
+    // Integer PCM has one zero; JS Math.trunc can produce negative zero.
+    assert(read.samples[i] === quantized);
   }
   return { samples: read.samples.length, seconds: read.samples.length / sr, sample_rate: sr };
 }
 
 function main() {
-  const inputs = process.argv.slice(2); assert.equal(inputs.length, protocol.input_count);
+  const inputs = process.argv.slice(2), resume = inputs[0] === '--resume-from-local-journal';
+  if (resume) inputs.shift();
+  assert.equal(inputs.length, protocol.input_count);
   const data = inputs.map((source, i) => {
     const bytes = fs.readFileSync(source), expected = protocol.inputs[i];
     assert.equal(bytes.length, expected.bytes); assert.equal(hash(bytes), expected.sha256);
@@ -70,10 +73,20 @@ function main() {
   assert.equal(new Set(data.map((d) => d.expected.sha256)).size, 5);
   assert.equal(new Set(data.map((d) => d.tag)).size, 5);
   fs.mkdirSync(out, { recursive: true, mode: 0o700 });
-  fs.writeFileSync(path.join(out, 'attempt.json'), JSON.stringify({ started_utc: new Date().toISOString(), protocol }), { flag: 'wx', mode: 0o600 });
+  if (resume) assert(fs.existsSync(path.join(out, 'attempt.json')));
+  fs.writeFileSync(path.join(out, resume ? 'resume-attempt.json' : 'attempt.json'), JSON.stringify({ started_utc: new Date().toISOString(), protocol }), { flag: 'wx', mode: 0o600 });
   json('input-manifest.json', data.map(({ source, expected, tag }) => ({ source, tag, ...expected })));
   const results = [];
   for (const { source, expected, pcm, tag } of data) {
+    const journal = path.join(out, `${tag}.json`);
+    if (resume && fs.existsSync(journal)) {
+      const record = JSON.parse(fs.readFileSync(journal));
+      assert.equal(record.source_sha256, expected.sha256); assert.equal(record.id, expected.id);
+      assert.equal(record.transcription_calls, 1); assert(!record.validation.failed);
+      assert(record.source_unchanged); results.push(record);
+      console.log(JSON.stringify({ file: record.source_file, resumed_without_transcription: true, note_count: record.note_count }));
+      continue;
+    }
     const start = performance.now(), wavPath = path.join(out, `${tag}-source.wav`);
     const conversionStart = performance.now();
     execFileSync('/opt/homebrew/bin/ffmpeg', ['-hide_banner', '-loglevel', 'error', '-n', '-i', source, ...protocol.conversion, wavPath], { stdio: 'pipe', timeout: 30000 });
@@ -104,6 +117,8 @@ function main() {
       timings_ms: { conversion: conversionMs, decode_and_pcm_check: decodeAndPcmCheckMs, transcription: transcriptionMs,
         tracker_reported: result.ms, render_and_readback: null, file_total: null }
     };
+    // Journal the literal transcription before any render/readback can fail.
+    json(`${tag}.json`, record);
     try {
       validate(result.notes, record.input_seconds);
       record.validation = { accepted_events: result.notes.length, rejected_events: 0, empty_notes: result.notes.length === 0 };
@@ -141,4 +156,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { validate, sourcePcm };
+module.exports = { validate, sourcePcm, checkWav };
