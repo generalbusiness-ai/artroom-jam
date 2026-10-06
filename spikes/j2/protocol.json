@@ -1,0 +1,28 @@
+{
+  "format": "jam-j2-scripted-protocol-1",
+  "scope": "Local harness preparation only; every player, commit and delivery is scripted",
+  "designHead": "8f383e04db38f6dfa3ad6646f4d351da4676f050",
+  "adoption": "2b3d09467a7eff74350767e6729b5aa921a4b4c5",
+  "request": "afc4b13be1645af051152fd44d6c742d5ff7e8c5",
+  "foundingLookaheadMs": 2000,
+  "meter": [4, 4],
+  "players": ["synth", "bass", "drums", "lead"],
+  "phraseBars": 4,
+  "themeStopsMs": [0, 6200],
+  "interpretationDelayMs": 100,
+  "patternOffsetsMs": [200, 230, 260, 290],
+  "deliveryDelayMs": [10, 20, 30, 40],
+  "sampleRate": 22050,
+  "mixGain": 0.2,
+  "maximumRenderSeconds": 30,
+  "claims": {
+    "deliveredBeforeStartPercent": 95,
+    "firstDownbeatAfterStopMs": 8000,
+    "secondThemeOnOneBoundary": true
+  },
+  "fullJ2StillOwed": [
+    "An actual authorized four-agent run and actual model latency, calls and cost",
+    "A recording of that performance and Hugh's worth-hearing judgment",
+    "At most two revisions to the harness and prompts before the existing musical stop rule"
+  ]
+}
