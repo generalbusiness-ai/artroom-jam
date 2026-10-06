@@ -41,7 +41,9 @@ splitting easy; legato humming is untested.
 
 One hosted model was compared on 2026-10-06 (see "Hosted comparison"). It
 returned eight flat-pitch events in 5.13 seconds for $0.0015735. Its contour
-does not agree with path B. Its playback has not yet received a human judgment.
+does not agree with path B. Hugh judged its playback "Not recognizable" in
+the builder session on 2026-10-06 (recorded at 14:48 Eastern). This is one
+reference assessment, not an additional phrase or singer evaluation.
 
 One finding for the plan: it says "a pitch tracker alone would give pitch
 without onsets". On this clip, splitting on silence and on pitch jumps gave
@@ -286,7 +288,8 @@ in ignored `spikes/j0/work/out/hosted/`: `response.json`, `measurement.json`,
 silence, then the model events. Credentials and request base64 were never
 written to output files or git.
 
-The hosted playback remains unjudged. This single call does not support a
+Hugh judged this hosted playback "Not recognizable" on 2026-10-06. This
+single call does not support a
 claim that hosted models are better, worse in general, or recognize humming
 reliably. It gives no reason to replace the path B playback Hugh accepted on
 this reference. It also does not complete J0's phrase or browser requirements.
@@ -305,7 +308,7 @@ committed. The original wavs are in `spikes/j0/material/`.
 4. `hum-02-rhythm-compare.wav`: the mouth percussion against kick and snare hits.
    Question: is the rhythm recognizably the same?
 5. `hosted/hum-01-hosted-compare.wav`: the tune against the hosted model's
-   literal 8-note output. This new playback still needs a human judgment.
+   literal 8-note output. Hugh judged it not recognizable on 2026-10-06.
 
 The `-playback.wav` files are the same playbacks without the original. The `.mid`
 and `.json` files carry the same transcriptions.
@@ -340,10 +343,12 @@ record the phrase and judgment before selecting a remedy.
 
 - The original first half did not call a hosted model. Hugh authorized this
   on 2026-10-06, and one bounded audio-capable model comparison is now done.
-  Which hosted model gives recognizable playback is still unanswered: the new
-  playback needs a person to judge it. No broader model sweep was performed.
+  This model's playback was judged not recognizable on the reference. Which
+  hosted model gives recognizable playback remains unanswered. No broader
+  model sweep was performed.
 - I report notes, counts and timings. Hugh's earlier path B listening judgment
-  is recorded above; I do not claim a listening judgment for the hosted output.
+  and hosted listening judgments are recorded above. They are Hugh's judgments,
+  not my own and not a new singer/phrase sample.
 - The microphone, the harness's buttons, WebAudio playback and the optional
   path A loader in the page were not run. What was exercised: the page's own
   inline scripts were parsed and run in a Node `vm` (no DOM), and its

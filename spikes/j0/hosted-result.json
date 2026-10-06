@@ -99,7 +99,13 @@
     },
     "midi_notes_read_back": 8
   },
-  "listener_judgment": null,
+  "listener_judgment": {
+    "listener": "Hugh",
+    "answer": "Not recognizable",
+    "recorded_utc": "2026-10-06T18:48:23Z",
+    "source": "Direct user response in builder session",
+    "scope": "One reference comparison; not an additional phrase or singer assessment"
+  },
   "dataset_phrases": 1,
   "dataset_singers": 1
 }
