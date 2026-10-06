@@ -43,10 +43,14 @@ playbacks. Hugh later confirmed he sang all five and judged all recognizable
 and useful as compositional inspiration: dockof 4/10, seven 5/10, and goodvibe,
 hbd and sowhat 8/10. This does not establish high fidelity verbatim playback;
 see the [dated J0 note](../../../notes/2026-10-05-j0-hum-to-theme.md) for his
-exact words. The original second-singer requirement remains open, with no
-waiver inferred. The new files have not been exercised through the browser or
-microphone path. The earlier Chrome reference run does not provide that
-coverage for them.
+exact words. At 16:38 on 2026-10-06, planner record
+`387ed198c6426a9e080bf657263003d9febb87e7` explicitly amended J0 on Hugh's
+direction to require one singer. Five Hugh phrases and his five judgments
+satisfy the amended phrase condition; the original two-singer requirement is
+history, not a live obligation. Spike evidence and the final recommendation
+are complete for planner ratification. The new files have not been exercised
+through the browser or microphone path. The earlier Chrome reference run does
+not provide that coverage for them or establish Jam product readiness.
 
 Correction, 2026-10-05 23:15: the planner's first description of the tune
 (leaps to G sharp 2, E2 and D sharp 4) came from the loudest spectral

@@ -3,12 +3,24 @@
 Date: 2026-10-05; updated 2026-10-06. Status: first local measurements, one
 authorized hosted comparison, a Chrome reference exercise and five supplied
 recordings processed locally and judged by Hugh, their singer. All five are
-recognizable and useful as compositional inspiration by his judgment. The
-full J0 spike remains open: the original second-singer requirement is unmet;
-the new recordings have not been exercised in the browser or through
-microphone capture.
+recognizable and useful as compositional inspiration by his judgment. Spike
+evidence is complete under the explicit one-singer requester amendment below.
+The final recommendation is recorded here; planner ratification remains
+pending. The new recordings have not been exercised in the browser or through
+microphone capture; that is a coverage limit, not a second-singer obligation.
 The source and first measurements were preserved in commit `6cd561f`; the
 hosted protocol was committed as `f726c6c` before sending audio.
+
+Requester amendment, 2026-10-06 16:38: planner record
+`387ed198c6426a9e080bf657263003d9febb87e7`, read in full by the root agent,
+amends request `9ce8533f0fe1d8eefa0e7e864dc860f3b3969c35` on Hugh's direction
+to require only one singer. Hugh's five real phrases and five judgments
+satisfy condition 1. No second person is needed under the amended request.
+The original two-singer requirement and earlier harness procedures are retained
+as history, not as a live obligation. The accepted reference, completed local
+and hosted comparisons, and five judged phrases supply the spike evidence;
+this note provides the builder recommendation for promise
+`42eb00945fd0efa10b224ec64444f32675219771` and planner acceptance.
 
 Update, 2026-10-06 07:15: Hugh judged path B's reference playback good and
 recognizable as the same tune, and did not prefer in-page model path A.
@@ -41,9 +53,10 @@ Recommendation after Hugh's reference and five-recording judgments: use local
 path B to provide a seed for a generated theme. It is small, fast and needs no
 model. Hugh found all five new transcriptions recognizable and useful as
 inspiration, with ratings from 4/10 to 8/10; these judgments do not establish
-faithful verbatim playback. This remains provisional across singers: the
-original second-singer requirement is still open. No downstream composition
-prototype or algorithm retuning has been commissioned by this feedback.
+faithful verbatim playback. The amended request is satisfied by this one-singer
+sample; broader claims across singers remain untested. No downstream
+composition prototype or algorithm retuning has been commissioned by this
+feedback.
 
 One hosted model was compared on 2026-10-06 (see "Hosted comparison"). It
 returned eight flat-pitch events in 5.13 seconds for $0.0015735. Its contour
@@ -323,7 +336,9 @@ playback-button exercise, not an assertion about audible output or a new
 recognizability judgment. The answer count stayed zero. No microphone,
 optional path A, singer judgment button or log download was used. The
 temporary tab was closed and the server stopped. This adds no phrase or
-singer to J0's required five-phrase, two-person sample.
+singer to J0's then-required five-phrase, two-person sample. The later
+one-singer amendment changes the requested sample, not what this browser
+exercise observed.
 
 ## What a person must now do to judge
 
@@ -396,10 +411,12 @@ to whether all five were recognizable, he answered “yes”. His stated use was
 Record all five as recognizable and useful for compositional inspiration by
 their singer's judgment. Do not convert this into a claim of high fidelity
 verbatim transcription. The supplied sample is now five phrases by one known
-singer, Hugh, with five singer judgments. The original requirement for evidence
-from a second singer remains open; no waiver is inferred. These judgments do
-not change the whole-file bounds, one-pass measurements, first-file diagnostic
-loss, hosted reference rejection or partial Chrome reference exercise.
+singer, Hugh, with five singer judgments. Before the 16:38 amendment the
+original second-singer requirement remained open, with no waiver inferred.
+The later explicit amendment now requires only one singer, so these five
+judged phrases satisfy that condition. It does not change the whole-file
+bounds, one-pass measurements, first-file diagnostic loss, hosted reference
+rejection or partial Chrome reference exercise.
 
 Listen in this order. Each "compare" file plays the original, one second of
 silence, then the playback. All are in `spikes/j0/work/out/`, which is not
@@ -418,7 +435,10 @@ committed. The original wavs are in `spikes/j0/material/`.
 The `-playback.wav` files are the same playbacks without the original. The `.mid`
 and `.json` files carry the same transcriptions.
 
-Then the secondary phrases, by two people, in the harness:
+Original two-person harness procedure (historical): the steps below preceded
+the 16:38 one-singer amendment and the supplied-file route. They remain a
+record of the proposed microphone evaluation, not an outstanding request to
+collect another singer or repeat Hugh's judgments.
 
 1. From `spikes/j0/harness/`, run `python3 -m http.server 8000 --bind 127.0.0.1`
    and note its PID, so you can stop it by PID afterwards. (A page on `localhost`
@@ -435,17 +455,53 @@ Then the secondary phrases, by two people, in the harness:
    `work/node_modules/@spotify/basic-pitch/model/` the files `model.json` and
    `group1-shard1of1.bin`, in the "path A" box.
 
-## Provisional recommendation
+## Final spike recommendation
 
 Use local path B as a seed for a generated theme, with a "sing again" option.
 Hugh accepted its reference playback and judged all five of his supplied
 recordings recognizable and useful as compositional inspiration, despite
 different ratings. Treat the output as inspiration for composition; the
-feedback does not establish faithful verbatim playback. Keep the direction
-provisional across singers until the original second-singer evidence
-requirement is met. Browser and microphone coverage for the supplied recordings
-also remains open. The hosted model's rejected reference playback gives no
-reason to replace this direction on the current evidence.
+feedback does not establish faithful verbatim playback. The intended role is
+to give a later composer the contour and timing of the idea from which to
+build Hugh's "cracking melody". This spike has not built or evaluated that
+downstream composition step.
+
+Keep the core transcription local, using the existing small JavaScript tracker
+and segmentation. It produced playable notes and gave Hugh usable seeds across
+five phrases: dockof 4/10, seven 5/10, and goodvibe, hbd and sowhat 8/10. All
+five received his separate recognizable "yes". The ratings show variation in
+the quality of the seed, not five high-fidelity copies. This is five phrases
+by one singer under the amended request; it supports that scope and does not
+establish reliability across voices, rooms or singing styles.
+
+Do not select optional path A for the core route on this evidence. Basic Pitch
+found a related contour on the reference but split it into fragments, required
+a larger download and took about 2.6–2.8 seconds on the measured Node CPU path.
+Hugh did not prefer it. Its optional browser loader and WebGL performance
+remain unmeasured, so the comparison does not establish their performance.
+The hosted fallback also gives no reason to replace path B: the single Gemini
+3.8 Flash reference call returned a flat E2 sequence, took 5.13 seconds, cost
+$0.0015735 and was judged "Not recognizable" by Hugh. That is a negative
+result for this model, prompt and reference, not a claim about all hosted
+models. No further model calls are needed for this spike recommendation.
+
+The input and measurement limits remain part of the recommendation. Four new
+clips exceeded the suggested eight seconds but were processed whole under the
+explicit 12-second protocol, without clipping or retuning. Their source PCM
+and literal MIDI/WAV outputs passed readback checks. The first clip's initial
+timing, exact pitch estimates and confidence remain unavailable after the
+verifier failure; they were not invented or remeasured. There is no labeled
+pitch ground truth. The reference is an intentionally indistinct published
+sketch; the new ratings are Hugh's assessments within the margin of his own
+singing. Both constrain claims about transcription accuracy.
+
+Credit the actual Chrome reference exercise for file selection, path B
+transcription, DOM rendering and playback-button activation. It did not give
+an audible-output judgment or exercise microphone capture, optional path A
+or the five new files. These are product-validation limits. Completed spike
+evidence and this recommendation do not establish Jam product readiness,
+deployment readiness, microphone readiness or completion of Artroom Source I3.
+Planner ratification of the final J0 report remains pending.
 
 ## What I could not do
 
@@ -468,11 +524,11 @@ reason to replace this direction on the current evidence.
   and the band gave 6 notes. A 48 kHz resampled copy of the hum gave the same 8
   notes (the first as 46). The synth and MIDI writers were run under Node, not in
   the page; the page's WebAudio playback is separate code.
-- Done-when for J0 asks for at least five real hummed phrases by two people,
-  judged by their singers. The original first half had one reference clip;
-  five further supplied recordings are now processed and judged by their singer,
-  Hugh. The five-phrase count and their singer judgments are present; evidence
-  from a second singer remains required. No waiver is inferred.
+- J0 originally asked for at least five real hummed phrases by two people,
+  judged by their singers. The 2026-10-06 16:38 requester amendment explicitly
+  changed that to one singer. Five supplied phrases processed and judged by
+  Hugh satisfy the amended condition. No second singer is now required;
+  generalization to other singers remains outside the demonstrated sample.
 
 ## Limits
 
