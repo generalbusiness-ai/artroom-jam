@@ -1,8 +1,9 @@
 # J0: hum to theme
 
 Date: 2026-10-05; updated 2026-10-06. Status: first local measurements plus one
-authorized hosted comparison. The full J0 spike remains open: five real phrases
-by two people, singer judgments and an actual browser exercise are still owed.
+authorized hosted comparison and a local reference exercise in Chrome. The
+full J0 spike remains open: five real phrases by two people, their singer
+judgments and their microphone/browser recording flows are still owed.
 The source and first measurements were preserved in commit `6cd561f`; the
 hosted protocol was committed as `f726c6c` before sending audio.
 
@@ -176,7 +177,9 @@ Each label says how the number was taken.
 | Rhythm onset detection | 18, 17, 18, 17, 18 ms | 5 calls in one Node process |
 | Path B and onsets through the harness's own code | 220 ms, 74 ms | one call each in a Node `vm`, cold |
 
-Browser timings (WebGL for path A, a real page for path B) were not measured.
+These original measurements did not measure browser timings. The later
+Chrome reference exercise below measured path B in the page; browser path A
+remains unmeasured.
 
 ## Download sizes
 
@@ -292,7 +295,30 @@ Hugh judged this hosted playback "Not recognizable" on 2026-10-06. This
 single call does not support a
 claim that hosted models are better, worse in general, or recognize humming
 reliably. It gives no reason to replace the path B playback Hugh accepted on
-this reference. It also does not complete J0's phrase or browser requirements.
+this reference. It does not complete J0's real-phrase requirements.
+
+## Local reference exercise in Chrome, 2026-10-06
+
+Builder served only the committed harness directory on `127.0.0.1:8765`
+with Python's standard-library HTTP server, and opened a separate Chrome
+tab. The audio stayed outside that HTTP root. The WAV file chooser loaded
+the existing `hum-01-tune.wav` from the original material directory.
+
+The page reported 4.2 seconds at 44,100 Hz, eight notes, and 228 ms for
+transcription. Its displayed pitches were `45, 50, 56, 56, 56, 52, 58, 51`,
+matching the earlier path B result. This is one observed page run on the
+shared machine, not a controlled performance comparison. WAV selection,
+decoding, path B computation and rendering were exercised in the browser.
+
+Builder clicked **Play the transcription** and inspected Chrome's console
+afterward. The two displayed errors were missing `favicon.ico` requests;
+no harness JavaScript exception was displayed. The console toolbar also
+counted warnings, which were not individually inspected. This records a
+playback-button exercise, not an assertion about audible output or a new
+recognizability judgment. The answer count stayed zero. No microphone,
+optional path A, singer judgment button or log download was used. The
+temporary tab was closed and the server stopped. This adds no phrase or
+singer to J0's required five-phrase, two-person sample.
 
 ## What a person must now do to judge
 
@@ -334,7 +360,7 @@ Then the secondary phrases, by two people, in the harness:
 
 In the page, with path B, plus a "sing again" button. Hugh accepted its
 reference playback. Keep this provisional until the five phrases by two
-people have singer judgments and the actual browser path is exercised.
+people have singer judgments through their actual recording/browser flows.
 The hosted model's flat contour does not justify changing that direction on
 the current evidence. If another singer's playback is not recognizable,
 record the phrase and judgment before selecting a remedy.
@@ -349,8 +375,10 @@ record the phrase and judgment before selecting a remedy.
 - I report notes, counts and timings. Hugh's earlier path B listening judgment
   and hosted listening judgments are recorded above. They are Hugh's judgments,
   not my own and not a new singer/phrase sample.
-- The microphone, the harness's buttons, WebAudio playback and the optional
-  path A loader in the page were not run. What was exercised: the page's own
+- The microphone and optional path A loader remain unexercised. The later
+  Chrome reference run exercised the file input, path B rendering and
+  playback button as described above, without an audible-output judgment.
+  Originally, the page's own
   inline scripts were parsed and run in a Node `vm` (no DOM), and its
   `transcribePhrase` function transcribed the three wav files: the hum gave 8
   notes (45, 50, 56, 56, 56, 52, 58, 51), the rhythm gave 18 hits at 4.1 a second,
