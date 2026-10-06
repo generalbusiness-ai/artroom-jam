@@ -2,9 +2,11 @@
 
 Date: 2026-10-05; updated 2026-10-06. Status: first local measurements, one
 authorized hosted comparison, a Chrome reference exercise and five supplied
-recordings processed locally. The full J0 spike remains open: two-singer
-coverage and each singer's judgments are unconfirmed; the new recordings have
-not been exercised in the browser or through microphone capture.
+recordings processed locally and judged by Hugh, their singer. All five are
+recognizable and useful as compositional inspiration by his judgment. The
+full J0 spike remains open: the original second-singer requirement is unmet;
+the new recordings have not been exercised in the browser or through
+microphone capture.
 The source and first measurements were preserved in commit `6cd561f`; the
 hosted protocol was committed as `f726c6c` before sending audio.
 
@@ -35,11 +37,13 @@ For the rhythm phrase, the onset detector found 18 hits in the 4.2 s clip, a
 median gap of 0.25 s, which is 4.1 hits a second. The README says "about four
 hits a second".
 
-Recommendation after Hugh's reference judgment: do the transcription in the
-page, with path B. It is small, fast and needs no model. Its playback was
-recognizable on this clip. This remains provisional across singers and
-phrases: the clip has clear silences between syllables, which makes note
-splitting easy; legato humming is untested.
+Recommendation after Hugh's reference and five-recording judgments: use local
+path B to provide a seed for a generated theme. It is small, fast and needs no
+model. Hugh found all five new transcriptions recognizable and useful as
+inspiration, with ratings from 4/10 to 8/10; these judgments do not establish
+faithful verbatim playback. This remains provisional across singers: the
+original second-singer requirement is still open. No downstream composition
+prototype or algorithm retuning has been commissioned by this feedback.
 
 One hosted model was compared on 2026-10-06 (see "Hosted comparison"). It
 returned eight flat-pitch events in 5.13 seconds for $0.0015735. Its contour
@@ -367,9 +371,35 @@ and transcription times, readback checks and exact output paths. Each recording
 has a `-source.wav`, `-playback.wav`, `-compare.wav` and `.mid`; each comparison
 plays the full original, one second of silence, then its literal transcription.
 These human recordings, derived audio, file-name mapping and note results
-remain local and are not committed or published. Singer identities and verdicts
-are still unknown; five files do not prove two singers or their judgments.
-These are Node runs, with no new browser or microphone coverage.
+remain local and are not committed or published. The later direct judgments
+below identify Hugh as the singer of all five. These are Node runs, with no new
+browser or microphone coverage.
+
+### Hugh's five-recording judgments, 2026-10-06
+
+Source: Hugh's direct replies in this session. He confirmed that he sang all
+five recordings. His recognizability ratings were:
+
+| Recording | Rating |
+|---|---|
+| dockof | 4/10 |
+| seven | 5/10 |
+| goodvibe | 8/10 |
+| hbd | 8/10 |
+| sowhat | 8/10 |
+
+The three 8/10 ratings come from his reply “others 8/10”. In a separate reply
+to whether all five were recognizable, he answered “yes”. His stated use was:
+
+> within margin of my singing, and assuming that the model takes this as inspiration to build a cracking melody rather than something to play verbatim I'd say they're all close enough to be useful.
+
+Record all five as recognizable and useful for compositional inspiration by
+their singer's judgment. Do not convert this into a claim of high fidelity
+verbatim transcription. The supplied sample is now five phrases by one known
+singer, Hugh, with five singer judgments. The original requirement for evidence
+from a second singer remains open; no waiver is inferred. These judgments do
+not change the whole-file bounds, one-pass measurements, first-file diagnostic
+loss, hosted reference rejection or partial Chrome reference exercise.
 
 Listen in this order. Each "compare" file plays the original, one second of
 silence, then the playback. All are in `spikes/j0/work/out/`, which is not
@@ -407,12 +437,15 @@ Then the secondary phrases, by two people, in the harness:
 
 ## Provisional recommendation
 
-In the page, with path B, plus a "sing again" button. Hugh accepted its
-reference playback. Keep this provisional until the five phrases by two
-people have singer judgments through their actual recording/browser flows.
-The hosted model's flat contour does not justify changing that direction on
-the current evidence. If another singer's playback is not recognizable,
-record the phrase and judgment before selecting a remedy.
+Use local path B as a seed for a generated theme, with a "sing again" option.
+Hugh accepted its reference playback and judged all five of his supplied
+recordings recognizable and useful as compositional inspiration, despite
+different ratings. Treat the output as inspiration for composition; the
+feedback does not establish faithful verbatim playback. Keep the direction
+provisional across singers until the original second-singer evidence
+requirement is met. Browser and microphone coverage for the supplied recordings
+also remains open. The hosted model's rejected reference playback gives no
+reason to replace this direction on the current evidence.
 
 ## What I could not do
 
@@ -423,7 +456,8 @@ record the phrase and judgment before selecting a remedy.
   model sweep was performed.
 - I report notes, counts and timings. Hugh's earlier path B listening judgment
   and hosted listening judgments are recorded above. They are Hugh's judgments,
-  not my own and not a new singer/phrase sample.
+  not my own. His five supplied-recording judgments are a separate five-phrase
+  sample by one confirmed singer.
 - The microphone and optional path A loader remain unexercised. The later
   Chrome reference run exercised the file input, path B rendering and
   playback button as described above, without an audible-output judgment.
@@ -436,14 +470,17 @@ record the phrase and judgment before selecting a remedy.
   the page; the page's WebAudio playback is separate code.
 - Done-when for J0 asks for at least five real hummed phrases by two people,
   judged by their singers. The original first half had one reference clip;
-  five further supplied recordings are now processed, but singer identities,
-  two-person coverage and their judgments remain unconfirmed.
+  five further supplied recordings are now processed and judged by their singer,
+  Hugh. The five-phrase count and their singer judgments are present; evidence
+  from a second singer remains required. No waiver is inferred.
 
 ## Limits
 
 - The original reference was one clip, one singer, one take, with clear gaps
-  between syllables. The five new recordings add inputs but no singer judgments
-  yet. We have no labeled ground truth or confirmed legato/noisy-room coverage.
+  between syllables. The five new recordings have Hugh's singer judgments,
+  ranging from 4/10 to 8/10, and all are useful as inspiration in his assessment.
+  We still have one known singer in that sample, no labeled pitch ground truth,
+  no high-fidelity verbatim claim and no confirmed legato/noisy-room coverage.
 - Two path B parameters were set after seeing this clip.
 - Pitch accuracy is not measured; there is no ground truth. "Same pitch" above
   means the two paths agree.

@@ -39,9 +39,13 @@ their singers. On 2026-10-06 the user supplied five AIFF recordings; each was
 processed whole with the existing local path B under the
 [frozen protocol](../user-five-protocol.md). Human audio and note results stay
 in ignored `work/out/user-five/`, with a local identity manifest and comparison
-playbacks. Singer identities, two-person coverage and each singer's judgment
-remain unconfirmed. The new files have not been exercised through the browser
-or microphone path. The earlier Chrome reference run does not provide that
+playbacks. Hugh later confirmed he sang all five and judged all recognizable
+and useful as compositional inspiration: dockof 4/10, seven 5/10, and goodvibe,
+hbd and sowhat 8/10. This does not establish high fidelity verbatim playback;
+see the [dated J0 note](../../../notes/2026-10-05-j0-hum-to-theme.md) for his
+exact words. The original second-singer requirement remains open, with no
+waiver inferred. The new files have not been exercised through the browser or
+microphone path. The earlier Chrome reference run does not provide that
 coverage for them.
 
 Correction, 2026-10-05 23:15: the planner's first description of the tune
