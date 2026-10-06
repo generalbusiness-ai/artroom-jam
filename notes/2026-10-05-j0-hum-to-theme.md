@@ -1,8 +1,18 @@
 # J0: hum to theme
 
-Date: 2026-10-05. Status: first half of the spike. The measurements below are
-done; the judgment is not, because the judge is a person listening. Nothing
-here is committed.
+Date: 2026-10-05; updated 2026-10-06. Status: first local measurements plus one
+authorized hosted comparison. The full J0 spike remains open: five real phrases
+by two people, singer judgments and an actual browser exercise are still owed.
+The source and first measurements were preserved in commit `6cd561f`; the
+hosted protocol was committed as `f726c6c` before sending audio.
+
+Update, 2026-10-06 07:15: Hugh judged path B's reference playback good and
+recognizable as the same tune, and did not prefer in-page model path A.
+Planner record `475c57cac0cb27cfc729915f0919c775f23e95d7` authorizes hosted
+models and this reference audio leaving the machine, Workers AI first and
+OpenRouter second. This is one reference phrase from a published sketch,
+one singer, not Hugh's voice. That judgment does not replace the remaining
+phrases or judge the new hosted playback.
 
 ## Conclusion
 
@@ -23,15 +33,15 @@ For the rhythm phrase, the onset detector found 18 hits in the 4.2 s clip, a
 median gap of 0.25 s, which is 4.1 hits a second. The README says "about four
 hits a second".
 
-Provisional recommendation, until the owner has listened: do the
-transcription in the page, with path B. It is small, fast, needs no model, and
-on this clip it produced the right number of notes. This is provisional for two
-reasons. Nobody has listened to the playback yet. And the clip has clear
-silences between syllables, which makes note splitting easy; legato humming is
-untested.
+Recommendation after Hugh's reference judgment: do the transcription in the
+page, with path B. It is small, fast and needs no model. Its playback was
+recognizable on this clip. This remains provisional across singers and
+phrases: the clip has clear silences between syllables, which makes note
+splitting easy; legato humming is untested.
 
-Hosted audio-capable models were out of scope for me, so half of the request's
-condition 2 is not done (see "What I could not do").
+One hosted model was compared on 2026-10-06 (see "Hosted comparison"). It
+returned eight flat-pitch events in 5.13 seconds for $0.0015735. Its contour
+does not agree with path B. Its playback has not yet received a human judgment.
 
 One finding for the plan: it says "a pitch tracker alone would give pitch
 without onsets". On this clip, splitting on silence and on pitch jumps gave
@@ -39,8 +49,10 @@ onsets as well, because the syllables are separated by quiet gaps.
 
 ## What ran
 
-All on this machine (Apple M5 Max, macOS, Node v26.10.0), with no audio or API
-leaving it. The machine was shared: the load average was about 4.5 to 6 during
+The original local runs below were all on this machine (Apple M5 Max, macOS,
+Node v26.10.0), with no audio or API leaving it. The later hosted comparison
+sent only the authorized reference clip and its frozen blind prompt. The
+machine was shared: the load average was about 4.5 to 6 during
 the measurements, so timings are noisy.
 
 - Path A: Basic Pitch, npm package `@spotify/basic-pitch` version 1.0.1,
@@ -93,11 +105,11 @@ syllable only; a quiet tail after each syllable was treated as silence.
 Note 1 is on a rounding edge: at 48 kHz (the file resampled; observed once) it
 came out as 46.
 
-The README describes the dominant pitch as G#3, then G#2 and E2, then D#4. Neither
-path found anything below A2 or above A#3. That description came from a
-spectrogram, where strong harmonics can mislead; I did not find out which is
-right. If the owner hears the hum as having larger leaps than 13 semitones, this
-is the first place to look.
+The README originally described the dominant pitch as G#3, then G#2 and E2,
+then D#4. Neither local path found anything below A2 or above A#3. The material
+README's 2026-10-05 23:15 correction says those spectral-bin readings picked
+harmonics rather than fundamentals and directs us to trust the tracker.
+This correction is not independent pitch ground truth.
 
 Path A, same file, with Basic Pitch's default note thresholds, first of three
 identical runs. All 47 raw notes are in `work/out/hum-01-pathA-raw.json`; those
@@ -213,6 +225,72 @@ the package licence.
   opening contour. The first few Basic Pitch notes of the band (54, 54, 57, 55 in
   the first 0.6 s) are not a clear melody, and I did not treat them as one.
 
+## Hosted comparison
+
+The [frozen protocol](../spikes/j0/hosted-protocol.md) records the provider
+choice and literal blind prompt. Fresh Workers AI documentation did not
+establish a native audio-to-note route; ASR was not called as a substitute.
+This is a documented capability gap, not proof that no route exists. The
+authorized fallback was [Gemini 3.8 Flash on OpenRouter](https://openrouter.ai/google/gemini-3.8-flash),
+an audio-input, text-output service. Gemini is proprietary, used as a hosted
+service, not an Apache-2.0 dependency; see
+[Google's service terms](https://ai.google.dev/gemini-api/terms).
+
+One call, no retry. Only `hum-01-tune.wav` (370,518 bytes, SHA-256
+`595add9d8b3b0863974b395438b6436682e3aa8253beacf2ed35ced916fc5fd8`)
+was sent. The prompt gave no path B pitches, note count or timing.
+
+| Measure | Observed result |
+|---|---|
+| Requested / returned model | `google/gemini-3.8-flash` / same |
+| Provider returned | `Google` |
+| Generation ID | `gen-1791310923-KueTerzN5I75zJArPQPq` |
+| Client wall time | 5.127368 seconds, including network and server time |
+| Usage | 463 prompt tokens (105 audio), 327 completion, 790 total; 0 reasoning tokens reported |
+| Billed cost | $0.0015735, directly from `response.usage.cost`; not a catalog estimate |
+| Finish reason | `stop` |
+| Validated events | 8, all MIDI 40 (E2) |
+
+| # | Start s | Duration s | MIDI |
+|---|---|---|---|
+| 1 | 0.05 | 0.25 | 40 |
+| 2 | 0.55 | 0.25 | 40 |
+| 3 | 1.05 | 0.24 | 40 |
+| 4 | 1.45 | 0.22 | 40 |
+| 5 | 1.78 | 0.22 | 40 |
+| 6 | 2.14 | 0.23 | 40 |
+| 7 | 2.52 | 0.25 | 40 |
+| 8 | 2.92 | 0.35 | 40 |
+
+The model describes a low E2 vocalization with rhythmic articulation. That is
+its claim, not verified pitch ground truth. Its seven pitch steps are all zero,
+versus path B's +5, +6, 0, 0, -4, +6, -7. Matching events by position in the
+two eight-event lists gives absolute onset differences of 0.09, 0.08, 0.25,
+0.19, 0.09, 0.15, 0.21 and 0.21 seconds (mean 0.159, maximum 0.25). This is
+agreement between outputs, not a musical accuracy measure. All hosted pitches
+are 5 to 18 semitones below path B's corresponding events.
+
+The events passed finite value, MIDI range, chronological order, duration,
+clip-boundary and 20 ms overlap checks. They were rendered unchanged, at fixed
+velocity 100, with the existing synth and MIDI writer. The generated MIDI was
+parsed back and all eight pitch, start, duration and velocity events matched
+within its tick rounding. WAV files were decoded back with the expected sample
+counts: playback 3.67 seconds, comparison 8.87 seconds, both at 44.1 kHz.
+Neither of these checks establishes how the playback sounds.
+
+The [nonsecret result record](../spikes/j0/hosted-result.json) preserves the
+events and usage. The full provider response and generated playback stay local
+in ignored `spikes/j0/work/out/hosted/`: `response.json`, `measurement.json`,
+`validated-notes.json`, `hum-01-hosted.mid`, `hum-01-hosted-playback.wav` and
+`hum-01-hosted-compare.wav`. The comparison plays the original, one second of
+silence, then the model events. Credentials and request base64 were never
+written to output files or git.
+
+The hosted playback remains unjudged. This single call does not support a
+claim that hosted models are better, worse in general, or recognize humming
+reliably. It gives no reason to replace the path B playback Hugh accepted on
+this reference. It also does not complete J0's phrase or browser requirements.
+
 ## What a person must now do to judge
 
 Listen in this order. Each "compare" file plays the original, one second of
@@ -220,12 +298,14 @@ silence, then the playback. All are in `spikes/j0/work/out/`, which is not
 committed. The original wavs are in `spikes/j0/material/`.
 
 1. `hum-01-pathB-compare.wav`: the tune against path B's 8-note transcription.
-   This is the main one. Question: is the playback recognizably the same tune?
+   Hugh judged it recognizable on 2026-10-06 at 07:15.
 2. `hum-01-pathA-mono-compare.wav`: the same against path A reduced to one voice.
 3. `hum-01-pathA-raw-compare.wav`: path A as the model gave it, 47 notes. Expected
    to be messy; it shows what the model path needs cleaning up.
 4. `hum-02-rhythm-compare.wav`: the mouth percussion against kick and snare hits.
    Question: is the rhythm recognizably the same?
+5. `hosted/hum-01-hosted-compare.wav`: the tune against the hosted model's
+   literal 8-note output. This new playback still needs a human judgment.
 
 The `-playback.wav` files are the same playbacks without the original. The `.mid`
 and `.json` files carry the same transcriptions.
@@ -249,23 +329,21 @@ Then the secondary phrases, by two people, in the harness:
 
 ## Provisional recommendation
 
-In the page, with path B, plus a "sing again" button. Provisional until the
-owner has listened to the files above. If playback 1 is not recognizable, the
-likely causes are pitch (octave or leap errors, see the README discrepancy above)
-or note timing; path A fares no better on pitch here, so the next step would be a
-model called from an agent, not a bigger in-page model.
+In the page, with path B, plus a "sing again" button. Hugh accepted its
+reference playback. Keep this provisional until the five phrases by two
+people have singer judgments and the actual browser path is exercised.
+The hosted model's flat contour does not justify changing that direction on
+the current evidence. If another singer's playback is not recognizable,
+record the phrase and judgment before selecting a remedy.
 
 ## What I could not do
 
-- Hosted audio-capable models were out of scope for me. So the half of the
-  request's condition 2 that asks "if not, which audio-capable model does, and how
-  fast" is not done. It would need a multimodal model with audio input, or a
-  purpose-built audio transcription service, called with the hummed audio. These
-  models cost per call (priced by audio length or tokens), and calling one sends
-  the audio off this machine, so it needs the owner's go-ahead first. The test
-  clip is an excerpt of a published sketch, which is another reason to ask first.
-- I cannot hear. I report notes, counts and timings. Whether the playback is
-  recognizably the tune is the owner's call.
+- The original first half did not call a hosted model. Hugh authorized this
+  on 2026-10-06, and one bounded audio-capable model comparison is now done.
+  Which hosted model gives recognizable playback is still unanswered: the new
+  playback needs a person to judge it. No broader model sweep was performed.
+- I report notes, counts and timings. Hugh's earlier path B listening judgment
+  is recorded above; I do not claim a listening judgment for the hosted output.
 - The microphone, the harness's buttons, WebAudio playback and the optional
   path A loader in the page were not run. What was exercised: the page's own
   inline scripts were parsed and run in a Node `vm` (no DOM), and its
@@ -288,7 +366,7 @@ model called from an agent, not a bigger in-page model.
   on WebGL.
 - Download sizes are file sizes and gzip, not a network measurement.
 
-## Files (all uncommitted)
+## Files
 
 In `spikes/j0/`: `.gitignore`, `src/transcribe.js`, `src/run-basicpitch.js`,
 `src/pipeline.js`, `src/build-harness.js`, `src/harness.template.html`,
@@ -297,3 +375,18 @@ In `spikes/j0/`: `.gitignore`, `src/transcribe.js`, `src/run-basicpitch.js`,
 `work/`: `node_modules`, `out/` (wavs, `.mid`, `.json`, `summary.json`, `runs/`,
 `bp-bundle.js`). To rerun: `node src/run-basicpitch.js <wav> <out.json>` three
 times, then `node src/pipeline.js`.
+
+For the hosted comparison: `hosted-protocol.json`, `hosted-protocol.md`,
+`hosted-result.json`, `src/run-hosted.py` and `src/render-hosted.js`. The Python
+helper uses only the standard library and an exclusive local attempt marker
+to prevent accidental repeat inference. Run with `python3 -I` to avoid scratch
+directory module shadowing. The renderer uses only Node's built-in modules
+and the existing transcription helper. Local provider responses and generated
+audio are ignored; no new dependencies or Artroom source were used.
+
+Verification for this addition: JSON parsing, Python and Node syntax,
+validation rejection checks, WAV/MIDI output readback, local Markdown link
+checks and `git diff --check`. This standalone jam repository has no
+`package.json`, `docs/testing.md` or `npm run gate`; the Artroom gate belongs
+to the parent's M4 source work. The original Node-only harness measurements
+have not been relabeled as browser tests or rerun as a full suite.

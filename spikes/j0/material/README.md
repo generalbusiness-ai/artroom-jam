@@ -24,8 +24,19 @@ ffmpeg -i clip.mp4 -vn -ac 1 -ar 44100 -ss 3.3 -t 4.2 hum-02-rhythm.wav
 ffmpeg -i clip.mp4 -vn -ac 1 -ar 44100 -ss 7.5 ref-03-band.wav
 ```
 
+Update, 2026-10-06 07:15: Hugh judged path B's `hum-01` playback good and
+recognizable as the same tune, and did not prefer the in-page model path A.
+Planner record `475c57cac0cb27cfc729915f0919c775f23e95d7` also authorized
+hosted models and this reference audio leaving the machine, Workers AI first
+and OpenRouter second. One OpenRouter comparison has now run under the
+[frozen protocol](../hosted-protocol.md); its playback still needs a person
+to judge it. The WAV files remain ignored local files and are not published
+or committed. This is a reference phrase by a singer in the sketch, not
+Hugh's voice. Reusing it with another model does not add a phrase or singer.
+
 Secondary material: phrases hummed by people in the harness, judged by
-their singers.
+their singers. Five such real phrases across two people and an actual browser
+exercise remain owed by J0.
 
 Correction, 2026-10-05 23:15: the planner's first description of the tune
 (leaps to G sharp 2, E2 and D sharp 4) came from the loudest spectral
