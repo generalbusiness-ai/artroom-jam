@@ -77,17 +77,23 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, stepSeconds: number): 
     }
     case 'bass': {
       // A saw through two one-pole filters whose cutoff falls with the envelope.
+      // Bright: the filter opens wider and the saw is driven into a soft clip.
+      // Warm: a triangle, plain and round, that decays slowly.
       let phase = 0;
       let lp1 = 0;
       let lp2 = 0;
+      const bright = e.tone === 'bright';
+      const warm = e.tone === 'warm';
+      const decay = warm ? 0.5 : 0.12;
       length = Math.floor((seconds + 0.05) * sr);
       sample = (t) => {
         phase += f / sr;
-        const env = Math.exp(-t / 0.12) * (t < seconds ? 1 : Math.max(0, 1 - (t - seconds) / 0.05));
-        const a = onePole(180 + 900 * env, sr);
-        lp1 += a * (saw(phase) - lp1);
+        const env = Math.exp(-t / decay) * (t < seconds ? 1 : Math.max(0, 1 - (t - seconds) / 0.05));
+        const a = onePole(warm ? 500 : 180 + (bright ? 2200 : 900) * env, sr);
+        const x = warm ? triangle(phase) : bright ? Math.tanh(2 * saw(phase)) : saw(phase);
+        lp1 += a * (x - lp1);
         lp2 += a * (lp1 - lp2);
-        return 0.55 * v * Math.min(1, t / 0.003) * env * lp2;
+        return (warm ? 0.7 : 0.55) * v * Math.min(1, t / 0.003) * env * lp2;
       };
       break;
     }
@@ -97,15 +103,21 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, stepSeconds: number): 
       let p2 = 0;
       let lp1 = 0;
       let lp2 = 0;
-      const a = onePole(2200, sr);
-      length = Math.floor(0.4 * sr);
+      // Bright: wider open, driven, shorter. Warm: triangles, softer attack,
+      // a longer ring, like a strummed chord.
+      const bright = e.tone === 'bright';
+      const warm = e.tone === 'warm';
+      const a = onePole(bright ? 4200 : warm ? 1800 : 2200, sr);
+      const decay = bright ? 0.07 : warm ? Math.max(0.09, seconds * 0.8) : 0.09;
+      length = Math.floor((warm ? decay * 5 : 0.4) * sr);
       wet = 0.5;
       sample = (t) => {
         p1 += (f * 1.004) / sr;
         p2 += (f * 0.996) / sr;
-        lp1 += a * ((saw(p1) + saw(p2)) / 2 - lp1);
+        const x = warm ? (triangle(p1) + triangle(p2)) / 2 : bright ? Math.tanh(1.8 * (saw(p1) + saw(p2))) / 2 : (saw(p1) + saw(p2)) / 2;
+        lp1 += a * (x - lp1);
         lp2 += a * (lp1 - lp2);
-        return 0.12 * v * Math.min(1, t / 0.002) * Math.exp(-t / 0.09) * lp2;
+        return (warm ? 0.16 : 0.12) * v * Math.min(1, t / (warm ? 0.012 : 0.002)) * Math.exp(-t / decay) * lp2;
       };
       break;
     }
@@ -113,14 +125,20 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, stepSeconds: number): 
       // A square behind a filter that the pattern opens.
       let phase = 0;
       let lp = 0;
+      // Bright: the filter opens further and the square is driven. Warm: a
+      // triangle pluck that rings longer.
       const open = e.filter ?? 0.5;
-      const a = onePole(250 + open * open * 4500, sr);
-      length = Math.floor(0.35 * sr);
+      const bright = e.tone === 'bright';
+      const warm = e.tone === 'warm';
+      const a = onePole(250 + open * open * (bright ? 7000 : 4500), sr);
+      const decay = warm ? 0.2 : 0.08;
+      length = Math.floor((warm ? decay * 5 : 0.35) * sr);
       wet = 0.35;
       sample = (t) => {
         phase += f / sr;
-        lp += a * (square(phase) - lp);
-        return 0.12 * v * Math.min(1, t / 0.002) * Math.exp(-t / 0.08) * lp;
+        const x = warm ? triangle(phase) : bright ? Math.tanh(1.5 * square(phase)) : square(phase);
+        lp += a * (x - lp);
+        return (warm ? 0.16 : 0.12) * v * Math.min(1, t / 0.002) * Math.exp(-t / decay) * lp;
       };
       break;
     }
@@ -133,19 +151,22 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, stepSeconds: number): 
       let p2 = 0;
       let lp = 0;
       let lo = 0;
-      const a = onePole(5200, sr);
+      // Warm: less drive, a darker filter, a slower, deeper vibrato and a
+      // softer echo, for a mournful lead.
+      const warm = e.tone === 'warm';
+      const a = onePole(warm ? 2600 : 5200, sr);
       const aLo = onePole(220, sr);
       const from = e.from ?? e.pitch;
       const glide = e.from === undefined ? 0 : Math.max(0.01, (e.glide ?? 1) * stepSeconds);
       const held = seconds >= 0.35;
-      const drive = 3 + 3 * v;
+      const drive = warm ? 1.2 + v : 3 + 3 * v;
       length = Math.floor((seconds + 0.25) * sr);
       wet = 0.3;
-      echo = { delay: Math.round(3 * stepSeconds * sr), gain: 0.3 };
+      echo = { delay: Math.round(3 * stepSeconds * sr), gain: warm ? 0.2 : 0.3 };
       sample = (t) => {
         const g = t < glide ? 1 - (1 - t / glide) ** 2 : 1;
         let pitch = from + (e.pitch - from) * g;
-        if (held && t > 0.18) pitch += 0.3 * Math.min(1, (t - 0.18) / 0.3) * Math.sin(TWO_PI * 5.8 * t);
+        if (held && t > 0.18) pitch += (warm ? 0.4 : 0.3) * Math.min(1, (t - 0.18) / 0.3) * Math.sin(TWO_PI * (warm ? 4.8 : 5.8) * t);
         const fp = mtof(pitch);
         p1 += fp / sr;
         p2 += (fp * 1.004) / sr;
@@ -285,7 +306,7 @@ export function renderBar(
     if (options.parts && !options.parts.includes(part as Part)) continue;
     for (const e of p.pattern.events) {
       if (Math.floor(e.step / 16) !== p.barInPattern) continue;
-      const offset = Math.round((e.step % 16) * stepSeconds * sr);
+      const offset = Math.round(((e.step % 16) + (e.late ?? 0)) * stepSeconds * sr);
       playNote(bus, offset, e, stepSeconds);
     }
   }

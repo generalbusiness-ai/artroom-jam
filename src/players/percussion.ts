@@ -1,6 +1,7 @@
 // Percussion: the floor, hats, claps and a fill. See percussion.prompt.md.
 
 import type { Interpretation } from '../interpret.ts';
+import { NEUTRAL, type Style } from '../mood.ts';
 import { random } from '../music.ts';
 import type { NoteEvent } from '../record.ts';
 import { banter, type Played } from './player.ts';
@@ -27,14 +28,36 @@ function hit(step: number, pitch: number, velocity: number, voice: string): Note
   return { step, length: 1, pitch, velocity, voice };
 }
 
-export function percussion(interpretation: Interpretation, bar: number, seed: number): Played {
+export function percussion(interpretation: Interpretation, bar: number, seed: number, style: Style = NEUTRAL): Played {
   const events: NoteEvent[] = [];
   const fill = bar % 8 === 7;
+  const train = style.percussion === 'train';
 
-  for (const s of [0, 4, 8, 12]) events.push(hit(s, KICK, 120, 'kick'));
-  for (const s of [4, 12]) events.push(hit(s, CLAP, 100, 'clap'));
+  for (const s of train ? [0, 8] : [0, 4, 8, 12]) events.push(hit(s, KICK, train ? 100 : style.percussion === 'drive' ? 124 : 120, 'kick'));
+  for (const s of [4, 12]) events.push(hit(s, CLAP, train ? 70 : 100, 'clap'));
 
-  if (interpretation.rhythm.length > 0) {
+  if (style.percussion === 'drive') {
+    // Driving: a closed hat on every sixteenth, an open hat on each off-beat.
+    for (let s = 0; s < 16; s++) {
+      if (s % 4 === 2) events.push(hit(s, OPEN_HAT, 92, 'openhat'));
+      else events.push(hit(s, CLOSED_HAT, s % 2 ? 56 : 76, 'hat'));
+    }
+  } else if (train) {
+    // A train beat: hats on the eighths, accented off the beat, only off the
+    // beat when the mood is sparse.
+    for (let s = 0; s < 16; s += 2) {
+      if (s % 4 === 2 || style.density >= 1) events.push(hit(s, CLOSED_HAT, s % 4 === 2 ? 72 : 52, 'hat'));
+    }
+  }
+  if (style.percussion !== 'floor') {
+    // The sung rhythm's low onsets on the low tom, over the mood's beat.
+    const k = interpretation.rhythmBars ? bar % interpretation.rhythmBars : 0;
+    for (const h of interpretation.rhythm) {
+      if (Math.floor(h.step / 16) === k && h.cls === 'low' && !(fill && h.step % 16 >= 12)) {
+        events.push(hit(h.step % 16, LOW_TOM, train ? 80 : 104, 'tom'));
+      }
+    }
+  } else if (interpretation.rhythm.length > 0) {
     // Follow the sung rhythm: high onsets on the hats, low ones on the low tom.
     const k = bar % interpretation.rhythmBars;
     for (const h of interpretation.rhythm) {
@@ -56,7 +79,8 @@ export function percussion(interpretation: Interpretation, bar: number, seed: nu
     // The last beat of every eighth bar rolls down the toms.
     const r = random(seed, 2, bar);
     const toms = r() < 0.5 ? [HIGH_TOM, HIGH_TOM, MID_TOM, LOW_TOM] : [HIGH_TOM, MID_TOM, MID_TOM, LOW_TOM];
-    toms.forEach((pitch, i) => events.push(hit(12 + i, pitch, 90 + i * 8, 'tom')));
+    if (train) [MID_TOM, LOW_TOM].forEach((pitch, i) => events.push(hit(12 + 2 * i, pitch, 76, 'tom')));
+    else toms.forEach((pitch, i) => events.push(hit(12 + i, pitch, 90 + i * 8, 'tom')));
   }
 
   const say = interpretation.rhythm.length > 0 && bar % 4 === 0 && bar > 0 ? LINES[5] : banter(LINES.slice(0, 5), bar, seed, 2);

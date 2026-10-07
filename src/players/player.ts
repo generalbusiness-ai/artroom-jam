@@ -2,6 +2,7 @@
 // pattern. `bar` counts the player's own bars from 0, the bar it arrived.
 
 import type { Interpretation, ThemeNote } from '../interpret.ts';
+import { NEUTRAL, type Style } from '../mood.ts';
 import { random, snapToKey } from '../music.ts';
 import type { NoteEvent } from '../record.ts';
 
@@ -13,7 +14,19 @@ export interface Played {
   say?: string; // a line of banter, now and then
 }
 
-export type Player = (interpretation: Interpretation, bar: number, seed: number) => Played;
+// `style` is the room's mood (see mood.ts); NEUTRAL when absent. The
+// interpretation a player is given is already in the mood's mode.
+export type Player = (interpretation: Interpretation, bar: number, seed: number, style?: Style) => Played;
+
+// What every part shares in a mood: each voice's timbre preset, and swing,
+// which plays every off-beat eighth a little late.
+export function feel(events: NoteEvent[], style: Style = NEUTRAL): NoteEvent[] {
+  return events.map((e) => {
+    const tone = style.timbre[e.voice as keyof Style['timbre']];
+    const late = style.swing && e.step % 4 === 2 ? style.swing : 0;
+    return { ...e, ...(tone ? { tone } : {}), ...(late ? { late } : {}) };
+  });
+}
 
 // One line on arrival, then perhaps one every fourth bar.
 export function banter(lines: string[], bar: number, seed: number, salt: number): string | undefined {

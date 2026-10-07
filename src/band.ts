@@ -1,10 +1,12 @@
 // The band as it writes to the record. A sing is recorded with the synth's
-// interpretation of it. At each bar boundary the band records the takes that
+// interpretation of it. A mood is recorded as said; the players read it. At each bar boundary the band records the takes that
 // are due and each taken part's next pattern, so that the patterns take
 // effect, by the timing rule, from the next bar the rule allows.
 
 import { interpretRhythm, interpretTune, type HummedNote, type Interpretation, type Onset } from './interpret.ts';
+import { inMood } from './mood.ts';
 import { PLAYERS, ARRIVAL_ORDER } from './players/index.ts';
+import { feel } from './players/player.ts';
 import {
   activeAt,
   createLog,
@@ -76,6 +78,12 @@ export function sing(band: Band, time: number, phrase: Phrase): void {
   }
 }
 
+// Anyone in the room says a mood phrase. It takes effect by the timing rule;
+// the players read it from the bar it takes effect.
+export function mood(band: Band, time: number, text: string, by = 'person'): void {
+  record(band.log, { type: 'mood', by, time, text });
+}
+
 // Called at, or a little before, each bar boundary.
 export function tick(band: Band, time: number): void {
   const { log, rules } = band;
@@ -92,9 +100,11 @@ export function tick(band: Band, time: number): void {
     if (!taken(log, part)) continue;
     const effect = effectBarAt(log, time, rules);
     if (band.coveredUntil[part]! > effect) continue;
-    const interpret = activeAt(log, effect, rules).interpretation;
+    const active = activeAt(log, effect, rules);
+    const interpret = active.interpretation;
     if (!interpret) continue;
-    const played = PLAYERS[part](interpret.interpretation, band.ownBar[part]!, band.seed);
+    const { style } = active;
+    const played = PLAYERS[part](inMood(interpret.interpretation, style), band.ownBar[part]!, band.seed, style);
     record(log, {
       type: 'pattern',
       by: part,
@@ -102,7 +112,7 @@ export function tick(band: Band, time: number): void {
       part,
       bars: played.bars,
       follows: interpret.seq,
-      events: played.events,
+      events: feel(played.events, style),
     });
     band.coveredUntil[part] = effect + played.bars;
     band.ownBar[part] = band.ownBar[part]! + played.bars;

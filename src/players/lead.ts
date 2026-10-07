@@ -4,6 +4,7 @@
 // a copy of it. See lead.prompt.md.
 
 import type { Interpretation } from '../interpret.ts';
+import { NEUTRAL, type Style } from '../mood.ts';
 import { pitchClass, random, scale, snapToKey, stepInKey, type Key } from '../music.ts';
 import type { NoteEvent } from '../record.ts';
 import { banter, legato, themeBar, themeInKey, type Played } from './player.ts';
@@ -61,7 +62,52 @@ export function screamPitch(interpretation: Interpretation): number {
   return mostSung(interpretation) + 12 + 24;
 }
 
-export function lead(interpretation: Interpretation, bar: number, seed: number): Played {
+export function lead(interpretation: Interpretation, bar: number, seed: number, style: Style = NEUTRAL): Played {
+  if (style.lead === 'stab') return stabbing(interpretation, bar, seed);
+  const played = rockstar(interpretation, bar, seed);
+  return style.lead === 'mournful' ? mournful(interpretation, played, style) : played;
+}
+
+// Sparse and stabbing: two or three short, hard notes of the theme a bar, off
+// the beat, and every fourth bar a stutter on the last beat. The entrance is
+// still late: two stabs in the second half of the bar.
+function stabbing(interpretation: Interpretation, bar: number, seed: number): Played {
+  const key = interpretation.key;
+  const say = banter(LINES, bar, seed, 3);
+  const inKey = themeInKey(interpretation).map((p) => p + UP);
+  if (inKey.length === 0) return { bars: 1, events: [], say };
+  const held = mostSung(interpretation) + UP;
+  if (bar === 0) return { bars: 1, events: [note(10, 1, held, 124), note(13, 1, held, 118)], say };
+  const n = bar - 1;
+  const up = Math.floor(n / 2) % 2 === 1 ? 3 + Math.floor(random(seed, 3)() * 2) : 0;
+  const steps = n % 4 === 3 ? [3, 10, 13, 14, 15] : n % 2 ? [3, 10] : [2, 7, 10];
+  const events = steps.map((step, i) => {
+    const pitch = stepInKey(inKey[(3 * n + Math.min(i, 2)) % inKey.length], up, key);
+    return note(step, 1, pitch, i === 0 || step === 10 ? 124 : 106);
+  });
+  return { bars: 1, events, say };
+}
+
+// Mournful: the rockstar's notes with the swagger kept and the volume taken
+// out. Velocities squeezed into 60 to 86; long and glided notes fall into
+// place from a step above, slowly; screams sung an octave lower; notes held
+// longer, as the mood's note length says, up to the next note.
+function mournful(interpretation: Interpretation, played: Played, style: Style): Played {
+  const scream = screamPitch(interpretation);
+  const key = interpretation.key;
+  const events = played.events.map((e, i, all) => {
+    const pitch = e.pitch === scream ? scream - 12 : e.pitch;
+    const next = all[i + 1]?.step;
+    const length = next === undefined ? Math.round(e.length * style.length) : Math.max(e.length, Math.min(Math.round(e.length * style.length), next - e.step));
+    const velocity = Math.round(60 + (e.velocity - 60) * 0.4);
+    const out: NoteEvent = { step: e.step, length, pitch, velocity, voice: 'lead' };
+    if (e.length >= 3 || e.from !== undefined) Object.assign(out, { from: stepInKey(pitch, 1, key), glide: 2 });
+    return out;
+  });
+  return { ...played, events };
+}
+
+function rockstar(interpretation: Interpretation, bar: number, seed: number): Played {
   const key = interpretation.key;
   const say = banter(LINES, bar, seed, 3);
   const inKey = themeInKey(interpretation).map((p) => p + UP);
