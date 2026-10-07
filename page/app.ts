@@ -6,7 +6,7 @@ import type { Phrase } from '../src/band.ts';
 import { RHYTHM, THEME } from '../src/phrases.ts';
 import type { Part } from '../src/record.ts';
 import { renderBar } from '../src/render.ts';
-import { advance, createLive, singNow, type Live } from './live.ts';
+import { advance, createLive, moodNow, singNow, type Live } from './live.ts';
 import { stageAt } from './view.ts';
 
 // How far ahead of a bar its sound is rendered and scheduled, in seconds.
@@ -62,12 +62,24 @@ function press(phrase: Phrase): void {
   $('#status').textContent = `You ${phrase.kind === 'tune' ? 'hummed the tune' : 'sang the rhythm'}. It takes effect at bar ${bar}.`;
 }
 
+function sayMood(event: Event): void {
+  event.preventDefault();
+  const input = $<HTMLInputElement>('#mood-text');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!audio) start();
+  void audio!.resume();
+  const bar = moodNow(live!, now(), text);
+  input.value = '';
+  $('#status').textContent = `The room says "${text}". It takes effect at bar ${bar}.`;
+}
+
 const PARTS: Part[] = ['synth', 'percussion', 'lead'];
 
 function draw(): void {
   if (!live) return;
   const stage = stageAt(live.band.log, now(), live.band.rules);
-  $('#bar').textContent = `bar ${stage.bar} · beat ${stage.beat + 1} · ${stage.tempo} bpm${stage.key ? ` · ${stage.key}` : ''}`;
+  $('#bar').textContent = `bar ${stage.bar} · beat ${stage.beat + 1} · ${stage.tempo} bpm${stage.key ? ` · ${stage.key}` : ''}${stage.mood ? ` · ${stage.mood}` : ''}`;
   for (const part of PARTS) {
     const figure = $<SVGGElement>(`#${part}-player`);
     figure.style.visibility = stage.arrived[part] ? 'visible' : 'hidden';
@@ -91,3 +103,4 @@ function draw(): void {
 
 $('#sing').addEventListener('click', () => press({ kind: 'tune', notes: THEME }));
 $('#sing-rhythm').addEventListener('click', () => press({ kind: 'rhythm', onsets: RHYTHM }));
+$('#mood').addEventListener('submit', sayMood);

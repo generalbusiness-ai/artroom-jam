@@ -1,7 +1,7 @@
 // The live clock's side of the band: as time passes, record what the band
 // owes and say which bars are now close enough to be scheduled for sound.
 
-import { createBand, sing, tick, type Band, type Phrase } from '../src/band.ts';
+import { createBand, mood, sing, tick, type Band, type Phrase } from '../src/band.ts';
 import { barStart, effectBarAt } from '../src/record.ts';
 
 export interface Live {
@@ -17,6 +17,13 @@ export function createLive(): Live {
 export function singNow(live: Live, now: number, phrase: Phrase): number {
   const effectBar = effectBarAt(live.band.log, now, live.band.rules);
   sing(live.band, now, phrase);
+  return effectBar;
+}
+
+// Someone in the room says a mood at `now`. Returns the bar it takes effect from.
+export function moodNow(live: Live, now: number, text: string): number {
+  const effectBar = effectBarAt(live.band.log, now, live.band.rules);
+  mood(live.band, now, text);
   return effectBar;
 }
 

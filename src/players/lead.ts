@@ -89,7 +89,7 @@ function stabbing(interpretation: Interpretation, bar: number, seed: number): Pl
 }
 
 // Mournful: the rockstar's notes with the swagger kept and the volume taken
-// out. Velocities squeezed into 60 to 86; long and glided notes fall into
+// out. Velocities squeezed into 60 to 85; long and glided notes fall into
 // place from a step above, slowly; screams sung an octave lower; notes held
 // longer, as the mood's note length says, up to the next note.
 function mournful(interpretation: Interpretation, played: Played, style: Style): Played {
@@ -99,7 +99,7 @@ function mournful(interpretation: Interpretation, played: Played, style: Style):
     const pitch = e.pitch === scream ? scream - 12 : e.pitch;
     const next = all[i + 1]?.step;
     const length = next === undefined ? Math.round(e.length * style.length) : Math.max(e.length, Math.min(Math.round(e.length * style.length), next - e.step));
-    const velocity = Math.round(60 + (e.velocity - 60) * 0.4);
+    const velocity = Math.round(60 + (e.velocity - 60) * 0.38);
     const out: NoteEvent = { step: e.step, length, pitch, velocity, voice: 'lead' };
     if (e.length >= 3 || e.from !== undefined) Object.assign(out, { from: stepInKey(pitch, 1, key), glide: 2 });
     return out;

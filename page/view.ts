@@ -1,6 +1,7 @@
 // What the stage shows at a moment: pure functions of the record and the
 // time, so they can be tested without a browser.
 
+import { inMood, moodCaption } from '../src/mood.ts';
 import { activeAt, positionAt, schedule, DEFAULT_RULES, type Log, type Part, type Rules } from '../src/record.ts';
 
 export interface Caption {
@@ -19,6 +20,7 @@ export interface Stage {
   nod: number; // 1 on the beat, falling to 0 before the next
   tempo: number;
   key?: string;
+  mood?: string; // the latest mood phrase in effect
   arrived: Record<Part, boolean>;
   captions: Caption[];
   pending: Pending[];
@@ -42,6 +44,10 @@ export function stageAt(log: Log, time: number, rules: Rules = DEFAULT_RULES): S
     if (entry.type === 'say' && effectBar <= bar && effectBar > bar - CAPTION_BARS) {
       captions.push({ by: entry.by, text: entry.text });
     }
+    // A mood shows from its effect bar, with any fallback.
+    if (entry.type === 'mood' && effectBar <= bar && effectBar > bar - CAPTION_BARS) {
+      captions.push({ by: 'the room says', text: moodCaption(entry.text) });
+    }
     if (entry.type === 'sing' && effectBar > bar) pending.push({ kind: entry.kind, effectBar });
   }
   return {
@@ -49,7 +55,8 @@ export function stageAt(log: Log, time: number, rules: Rules = DEFAULT_RULES): S
     beat,
     nod: (1 - (beats - beat)) ** 3,
     tempo: active.tempo,
-    key: active.interpretation?.interpretation.key.name,
+    key: active.interpretation && inMood(active.interpretation.interpretation, active.style).key.name,
+    mood: active.mood?.text,
     arrived,
     captions: captions.slice(-3),
     pending,

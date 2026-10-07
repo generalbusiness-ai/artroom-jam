@@ -11,6 +11,8 @@
   .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
   button { font: inherit; padding: 8px 16px; border: 2px solid #222; background: #fff; border-radius: 8px; cursor: pointer; }
   button:active { background: #eee; }
+  #mood { margin: 0; }
+  #mood input { font: inherit; padding: 8px; border: 2px solid #222; border-radius: 8px; width: 16em; max-width: 100%; box-sizing: border-box; }
   #bar { font-variant-numeric: tabular-nums; }
   #status, #pending { color: #555; margin: 4px 0; min-height: 1.4em; }
   #captions { min-height: 4.5em; font-size: 20px; }
@@ -98,6 +100,10 @@
 <div class="controls">
   <button id="sing" type="button">sing</button>
   <button id="sing-rhythm" type="button">sing a rhythm</button>
+  <form id="mood" class="controls">
+    <input id="mood-text" type="text" maxlength="40" placeholder="a mood, such as detroit techno" aria-label="a mood for the band">
+    <button type="submit">say it</button>
+  </form>
   <span id="bar">bar 0</span>
 </div>
 <p id="status">Press "sing" to hum the theme to the synth. No microphone is used.</p>
