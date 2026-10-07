@@ -46,13 +46,15 @@ interface Bus {
   sr: number;
 }
 
-// Writes one note at `offset` samples into the bus. `seconds` is the note's
-// written length.
-function playNote(bus: Bus, offset: number, e: NoteEvent, seconds: number): void {
+// Writes one note at `offset` samples into the bus. `stepSeconds` is the
+// length of a sixteenth step at the bar's tempo.
+function playNote(bus: Bus, offset: number, e: NoteEvent, stepSeconds: number): void {
   const { dry, send, sr } = bus;
+  const seconds = e.length * stepSeconds; // the note's written length
   const v = e.velocity / 127;
   const f = mtof(e.pitch);
   let wet = 0;
+  let echo: { delay: number; gain: number } | undefined; // two repeats, each quieter
   let length: number; // samples
   let sample: (t: number, i: number) => number;
 
@@ -123,23 +125,36 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, seconds: number): void
       break;
     }
     case 'lead': {
-      // Two saws, driven into a soft clip, filtered, with a late vibrato:
-      // a guitar of sorts.
+      // Two saws driven hard into a soft clip, bright, with the lows taken
+      // out: an overdriven guitar of sorts. The pitch glides from `from` to
+      // the note (a bend or a slide), held notes get a widening vibrato, and
+      // a short echo repeats the note a dotted eighth later.
       let p1 = 0;
       let p2 = 0;
       let lp = 0;
-      const a = onePole(3000, sr);
-      length = Math.floor((seconds + 0.2) * sr);
+      let lo = 0;
+      const a = onePole(5200, sr);
+      const aLo = onePole(220, sr);
+      const from = e.from ?? e.pitch;
+      const glide = e.from === undefined ? 0 : Math.max(0.01, (e.glide ?? 1) * stepSeconds);
+      const held = seconds >= 0.35;
+      const drive = 3 + 3 * v;
+      length = Math.floor((seconds + 0.25) * sr);
       wet = 0.3;
+      echo = { delay: Math.round(3 * stepSeconds * sr), gain: 0.3 };
       sample = (t) => {
-        const vib = t > 0.25 ? 1 + 0.006 * Math.sin(TWO_PI * 5.5 * t) : 1;
-        p1 += (f * vib) / sr;
-        p2 += (f * vib * 1.003) / sr;
-        const x = Math.tanh(2.5 * (saw(p1) + saw(p2)) * 0.5);
+        const g = t < glide ? 1 - (1 - t / glide) ** 2 : 1;
+        let pitch = from + (e.pitch - from) * g;
+        if (held && t > 0.18) pitch += 0.3 * Math.min(1, (t - 0.18) / 0.3) * Math.sin(TWO_PI * 5.8 * t);
+        const fp = mtof(pitch);
+        p1 += fp / sr;
+        p2 += (fp * 1.004) / sr;
+        const x = Math.tanh(drive * 0.5 * (saw(p1) + saw(p2))) / Math.tanh(drive);
         lp += a * (x - lp);
-        const env = Math.min(1, t / 0.008) * (0.75 + 0.25 * Math.exp(-t / 0.1)) *
-          (t < seconds ? 1 : Math.max(0, 1 - (t - seconds) / 0.2));
-        return 0.4 * v * env * lp;
+        lo += aLo * (lp - lo);
+        const env = Math.min(1, t / 0.005) * (0.7 + 0.3 * Math.exp(-t / 0.08)) *
+          (t < seconds ? 1 : Math.max(0, 1 - (t - seconds) / 0.25));
+        return 0.3 * v * env * (lp - lo);
       };
       break;
     }
@@ -206,7 +221,19 @@ function playNote(bus: Bus, offset: number, e: NoteEvent, seconds: number): void
     const x = sample((i - offset) / sr, i);
     dry[i] += x;
     if (wet) send[i] += x * wet;
+    if (echo) {
+      if (i + echo.delay < dry.length) dry[i + echo.delay] += x * echo.gain;
+      if (i + 2 * echo.delay < dry.length) dry[i + 2 * echo.delay] += x * echo.gain * echo.gain;
+    }
   }
+}
+
+// One note on its own, dry, for tests and inspection.
+export function renderNote(e: NoteEvent, stepSeconds: number, sampleRate = SAMPLE_RATE): Float32Array {
+  const length = Math.ceil((e.length * stepSeconds + TAIL) * sampleRate);
+  const bus: Bus = { dry: new Float32Array(length), send: new Float32Array(length), sr: sampleRate };
+  playNote(bus, 0, { ...e, step: 0 }, stepSeconds);
+  return bus.dry;
 }
 
 // Schroeder reverb: four damped combs in parallel, then two all-passes.
@@ -259,7 +286,7 @@ export function renderBar(
     for (const e of p.pattern.events) {
       if (Math.floor(e.step / 16) !== p.barInPattern) continue;
       const offset = Math.round((e.step % 16) * stepSeconds * sr);
-      playNote(bus, offset, e, e.length * stepSeconds);
+      playNote(bus, offset, e, stepSeconds);
     }
   }
   if (options.reverb !== false) {

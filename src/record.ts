@@ -22,6 +22,8 @@ export interface NoteEvent {
   velocity: number; // 0 to 127
   voice: string; // which sound the renderer uses
   filter?: number; // 0 (closed) to 1 (open), for voices with a filter
+  from?: number; // a glide (bend or slide) starts at this pitch and moves to `pitch`
+  glide?: number; // how long the glide takes, in sixteenth steps; 1 when absent
 }
 
 interface Base {
