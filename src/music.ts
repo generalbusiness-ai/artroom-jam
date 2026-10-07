@@ -2,21 +2,31 @@
 
 export const PITCH_CLASS_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+// An interpretation is major or minor; a mood may play it in another mode.
+export type Mode = 'major' | 'minor' | 'mixolydian' | 'pentatonic' | 'blues';
+
 export interface Key {
   tonic: number; // pitch class, 0 is C
-  mode: 'major' | 'minor';
+  mode: Mode;
   name: string;
 }
 
-const MAJOR = [0, 2, 4, 5, 7, 9, 11];
-const MINOR = [0, 2, 3, 5, 7, 8, 10];
+// Semitones above the tonic. Pentatonic is the minor pentatonic; blues adds
+// the flat fifth to it.
+export const MODES: Record<Mode, number[]> = {
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 10],
+  mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  pentatonic: [0, 3, 5, 7, 10],
+  blues: [0, 3, 5, 6, 7, 10],
+};
 
-export function keyName(tonic: number, mode: 'major' | 'minor'): string {
+export function keyName(tonic: number, mode: Mode): string {
   return `${PITCH_CLASS_NAMES[tonic]} ${mode}`;
 }
 
 export function scale(key: Key): number[] {
-  return (key.mode === 'major' ? MAJOR : MINOR).map((i) => (key.tonic + i) % 12);
+  return MODES[key.mode].map((i) => (key.tonic + i) % 12);
 }
 
 export function pitchClass(pitch: number): number {
@@ -53,7 +63,7 @@ export function atOrAbove(pc: number, floor: number): number {
 // The tonic triad of the key, rooted at or above `floor`.
 export function tonicTriad(key: Key, floor: number): number[] {
   const root = atOrAbove(key.tonic, floor);
-  return [root, root + (key.mode === 'major' ? 4 : 3), root + 7];
+  return [root, root + (MODES[key.mode].includes(4) ? 4 : 3), root + 7];
 }
 
 // A small seeded random number generator (mulberry32), so players are

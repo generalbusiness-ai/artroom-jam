@@ -11,6 +11,7 @@
 // session began. The lookahead is in bars.
 
 import type { HummedNote, Interpretation, Onset } from './interpret.ts';
+import { readMood, styleOf, type Style } from './mood.ts';
 
 export type Part = 'synth' | 'percussion' | 'lead' | 'bass';
 
@@ -22,6 +23,8 @@ export interface NoteEvent {
   velocity: number; // 0 to 127
   voice: string; // which sound the renderer uses
   filter?: number; // 0 (closed) to 1 (open), for voices with a filter
+  late?: number; // played this fraction of a step late: the swing
+  tone?: string; // a timbre preset of the voice, set by the mood
   from?: number; // a glide (bend or slide) starts at this pitch and moves to `pitch`
   glide?: number; // how long the glide takes, in sixteenth steps; 1 when absent
 }
@@ -66,7 +69,14 @@ export interface SayEntry extends Base {
   text: string;
 }
 
-export type Entry = SingEntry | InterpretEntry | TakeEntry | PatternEntry | SayEntry;
+// A mood: a short phrase anyone in the room says, which steers the whole
+// band's style (see mood.ts). It takes effect by the same rule as a pattern.
+export interface MoodEntry extends Base {
+  type: 'mood';
+  text: string;
+}
+
+export type Entry = SingEntry | InterpretEntry | TakeEntry | PatternEntry | SayEntry | MoodEntry;
 type WithoutSeq<E> = E extends Entry ? Omit<E, 'seq'> : never;
 export type NewEntry = WithoutSeq<Entry>;
 
@@ -175,12 +185,17 @@ export function schedule(log: Log, rules: Rules = DEFAULT_RULES): Schedule {
   ];
   const entries: Scheduled[] = [];
   let previous = 0;
+  let base = rules.defaultTempo; // the interpretation's tempo
+  let nudge = 0; // the mood's
   for (const entry of log.entries) {
     const effectBar = effectBarIn(segments, previous, entry.time, rules);
     entries.push({ entry, effectBar });
     previous = effectBar;
-    if (entry.type === 'interpret') {
-      const tempo = entry.interpretation.tempo;
+    const style = entry.type === 'mood' ? readMood(entry.text).style : undefined;
+    if (entry.type === 'interpret' || style) {
+      if (entry.type === 'interpret') base = entry.interpretation.tempo;
+      if (style) nudge = style.tempoNudge;
+      const tempo = Math.min(180, Math.max(60, base + nudge));
       const segment = {
         bar: effectBar,
         start: startIn(segments, effectBar),
@@ -225,10 +240,13 @@ export interface Active {
   interpretation?: InterpretEntry;
   parts: Partial<Record<Part, ActivePart>>;
   said: SayEntry[]; // say entries whose effect bar is this bar
+  mood?: MoodEntry; // the latest mood in effect
+  style: Style; // the style of the latest mood in effect that was understood
 }
 
 // What is active at a bar: the tempo, the interpretation, each part that has
-// been taken with the pattern it plays, and what is said at that bar.
+// been taken with the pattern it plays, what is said at that bar, and the
+// mood.
 export function activeAt(log: Log, bar: number, rules: Rules = DEFAULT_RULES): Active {
   const s = schedule(log, rules);
   const segment = segmentAtBar(s.segments, bar);
@@ -239,7 +257,9 @@ export function activeAt(log: Log, bar: number, rules: Rules = DEFAULT_RULES): A
     barSeconds: segment.barSeconds,
     parts: {},
     said: [],
+    style: styleOf([]),
   };
+  const moods: string[] = [];
   const patterns: Partial<Record<Part, Scheduled>> = {};
   for (const scheduled of s.entries) {
     if (scheduled.effectBar > bar) break; // effect bars never decrease
@@ -248,7 +268,12 @@ export function activeAt(log: Log, bar: number, rules: Rules = DEFAULT_RULES): A
     else if (e.type === 'take') active.parts[e.part] ??= { take: e, barInPattern: 0 };
     else if (e.type === 'pattern') patterns[e.part] = scheduled;
     else if (e.type === 'say' && scheduled.effectBar === bar) active.said.push(e);
+    else if (e.type === 'mood') {
+      active.mood = e;
+      moods.push(e.text);
+    }
   }
+  active.style = styleOf(moods);
   for (const [part, p] of Object.entries(active.parts) as [Part, ActivePart][]) {
     const scheduled = patterns[part];
     if (!scheduled) continue;
