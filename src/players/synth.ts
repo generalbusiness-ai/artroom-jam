@@ -4,7 +4,7 @@
 import type { Interpretation } from '../interpret.ts';
 import { atOrAbove, tonicTriad } from '../music.ts';
 import type { NoteEvent } from '../record.ts';
-import { banter, themeInKey, type Played } from './player.ts';
+import { banter, legato, themeInKey, type Played } from './player.ts';
 
 export const LINES = [
   'I heard a tune. I think it was a tune.',
@@ -17,11 +17,9 @@ export const LINES = [
 
 // The theme as it was sung, an octave up, each note held to the next.
 function humBack(interpretation: Interpretation): Played {
-  const theme = interpretation.theme;
-  const end = interpretation.themeBars * 16;
-  const events: NoteEvent[] = theme.map((n, i) => ({
+  const events: NoteEvent[] = legato(interpretation, 4).map((n) => ({
     step: n.step,
-    length: Math.min(4, (theme[i + 1]?.step ?? end) - n.step),
+    length: n.length,
     pitch: n.pitch + 12,
     velocity: n.velocity,
     voice: 'hum',

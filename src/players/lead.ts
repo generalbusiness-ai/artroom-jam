@@ -4,7 +4,7 @@
 import type { Interpretation } from '../interpret.ts';
 import { random, snapToKey, stepInKey } from '../music.ts';
 import type { NoteEvent } from '../record.ts';
-import { banter, themeBar, themeInKey, type Played } from './player.ts';
+import { banter, legato, themeBar, themeInKey, type Played } from './player.ts';
 
 export const LINES = [
   'Over the top it is.',
@@ -45,12 +45,12 @@ export function lead(interpretation: Interpretation, bar: number, seed: number):
   const answering = pass % 2 === 1;
   const intense = n >= 4;
   const higher = n >= 8 ? 7 : 0; // another octave up once well under way
-  for (const note of themeBar(interpretation, n)) {
+  for (const note of themeBar(interpretation, n, legato(interpretation, 8))) {
     let pitch = snapToKey(note.pitch, key) + UP;
     if (answering) pitch = stepInKey(pitch, answerDegrees, key);
     if (higher) pitch = stepInKey(pitch, higher, key);
     const velocity = intense ? 112 : 100;
-    events.push({ step: note.step, length: Math.max(2, note.length), pitch, velocity, voice: 'lead' });
+    events.push({ step: note.step, length: note.length, pitch, velocity, voice: 'lead' });
     // Intensifying: each note is struck again an eighth later, a step higher.
     if (intense && note.step + 2 < 16) {
       events.push({ step: note.step + 2, length: 1, pitch: stepInKey(pitch, 1, key), velocity: 96, voice: 'lead' });

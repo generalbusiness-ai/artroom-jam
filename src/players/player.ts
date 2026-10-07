@@ -24,10 +24,17 @@ export function banter(lines: string[], bar: number, seed: number, salt: number)
   return lines[1 + Math.floor(r() * (lines.length - 1))];
 }
 
-// The notes of one bar of the theme, with steps counted from that bar.
-export function themeBar(interpretation: Interpretation, bar: number): ThemeNote[] {
+// The theme with each note held until the next one starts, up to `most` steps.
+export function legato(interpretation: Interpretation, most: number): ThemeNote[] {
+  const theme = interpretation.theme;
+  const end = interpretation.themeBars * STEPS_PER_BAR;
+  return theme.map((n, i) => ({ ...n, length: Math.min(most, (theme[i + 1]?.step ?? end) - n.step) }));
+}
+
+// The notes of one bar of a theme, with steps counted from that bar.
+export function themeBar(interpretation: Interpretation, bar: number, notes = interpretation.theme): ThemeNote[] {
   const k = ((bar % interpretation.themeBars) + interpretation.themeBars) % interpretation.themeBars;
-  return interpretation.theme
+  return notes
     .filter((n) => Math.floor(n.step / STEPS_PER_BAR) === k)
     .map((n) => ({ ...n, step: n.step % STEPS_PER_BAR }));
 }
