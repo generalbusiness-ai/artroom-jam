@@ -5,6 +5,8 @@ import { RHYTHM, THEME } from '../src/phrases.ts';
 import { PLAYERS } from '../src/players/index.ts';
 import { CLAP, KICK, LOW_TOM } from '../src/players/percussion.ts';
 import { scale, pitchClass } from '../src/music.ts';
+import { screamPitch } from '../src/players/lead.ts';
+import type { NoteEvent } from '../src/record.ts';
 
 const tune = interpretTune(THEME);
 const rhythm = interpretRhythm(RHYTHM, tune);
@@ -68,25 +70,103 @@ test('percussion follows the sung rhythm when one is active', () => {
   assert.deepEqual(steps(bar0.filter((e) => e.voice === 'hat')), [0, 6, 8, 10, 12, 14]);
 });
 
-test('the lead enters with long notes, then plays the motif and answers it', () => {
-  const at = (bar: number) => PLAYERS.lead(tune, bar, 1).events;
-  assert.equal(at(0).length, 1);
-  assert.equal(at(0)[0].length, 16);
-  assert.deepEqual(
-    at(1).map((e) => e.length),
-    [8, 8],
-  );
-  // The motif keeps the theme's rhythm.
-  const call = at(2);
-  assert.deepEqual(steps(call), [0, 2, 5, 8, 11, 13, 15]);
-  // The answer has the same rhythm, higher.
-  const answer = at(4);
-  assert.deepEqual(steps(answer), steps(call));
-  assert.ok(answer[0].pitch > call[0].pitch);
-  // Intensifying: more notes, louder.
-  assert.ok(at(6).length > call.length);
-  assert.ok(Math.max(...at(6).map((e) => e.velocity)) > Math.max(...call.map((e) => e.velocity)));
-  for (const e of at(10)) assert.ok(scale(tune.key).includes(pitchClass(e.pitch)));
+const lead = (bar: number, seed = 1, i = tune) => PLAYERS.lead(i, bar, seed).events;
+const scream = screamPitch(tune);
+// A run: at least six notes on consecutive sixteenths, each a step up the key.
+const runs = (events: NoteEvent[]) => {
+  let found = 0;
+  let length = 1;
+  for (let i = 1; i <= events.length; i++) {
+    const a = events[i - 1];
+    const b = events[i];
+    const up = b && b.step === a.step + 1 && b.pitch > a.pitch && b.pitch - a.pitch <= 2;
+    if (up) length++;
+    else {
+      if (length >= 6) found++;
+      length = 1;
+    }
+  }
+  return found;
+};
+
+test('the lead makes a later, bigger entrance: silence, one held bent note, then the two-note tail', () => {
+  const [held, ...rest] = lead(0);
+  assert.equal(rest.length, 0);
+  assert.ok(held.step >= 8, `enters at step ${held.step}`); // the old lead entered on the downbeat
+  assert.ok(held.velocity >= 120 && held.length >= 12); // the old lead's first note: velocity 84
+  assert.ok(held.from! < held.pitch); // bent up into the note
+  const tail = lead(1);
+  assert.equal(tail.length, 2);
+  assert.ok(tail.every((e) => e.from !== undefined));
+});
+
+test('the lead lays back on long notes, rushes its fills and plays big contrasts', () => {
+  for (const bar of [2, 4, 6]) {
+    const events = lead(bar);
+    const themeSteps = new Set(tune.theme.filter((n) => n.step < 16).map((n) => n.step));
+    const long = events.filter((e) => e.from !== undefined && e.step < 11);
+    assert.ok(long.length >= 2, `bar ${bar}`);
+    // Each laid-back note sits an eighth after a note of the theme.
+    for (const e of long) assert.ok(themeSteps.has(e.step - 2), `bar ${bar} step ${e.step}`);
+    // The flourish rushes in a sixteenth before beat 4.
+    assert.ok(events.some((e) => e.step === 11) && !events.some((e) => e.step === 12 && e.length > 1));
+  }
+  // The show-off run starts a sixteenth before beat 2.
+  assert.equal(lead(3).find((e) => e.pitch === scream - 24)!.step, 3);
+  const velocities = Array.from({ length: 8 }, (_, b) => lead(b + 2)).flat().map((e) => e.velocity);
+  assert.ok(Math.max(...velocities) - Math.min(...velocities) >= 50);
+});
+
+test('the lead ends every phrase with a flourish: a trill, a fast run or a scream two octaves up', () => {
+  const kinds = new Set<string>();
+  for (const bar of [2, 4, 6, 10, 12, 14]) {
+    const end = lead(bar).filter((e) => e.step >= 11);
+    const pitches = new Set(end.map((e) => e.pitch));
+    if (end.length === 1 && end[0].pitch === scream && end[0].from! < scream) kinds.add('scream');
+    else if (end.length === 5 && pitches.size === 2) kinds.add('trill');
+    else if (end.length === 5 && end.every((e, i) => i === 0 || e.pitch < end[i - 1].pitch)) kinds.add('run');
+    else assert.fail(`bar ${bar}: ${JSON.stringify(end)}`);
+  }
+  assert.deepEqual([...kinds].sort(), ['run', 'scream', 'trill']);
+  // Two octaves above the synth's hum of the most sung note.
+  assert.equal(scream, Math.max(...PLAYERS.synth(tune, 0, 1).events.filter((e) => e.pitch % 12 === 8).map((e) => e.pitch)) + 24);
+});
+
+test('the lead shows off once per pass with a run up the key, and lets it hang', () => {
+  for (let pass = 0; pass < 8; pass++) {
+    const bars = [lead(2 + 2 * pass), lead(3 + 2 * pass)];
+    assert.equal(bars.map(runs).reduce((a, b) => a + b), 1, `pass ${pass}`);
+    const showOff = bars[1];
+    const hang = showOff.at(-1)!;
+    assert.ok(hang.length >= 8, `pass ${pass}`); // held into the next bar
+    for (const e of showOff) assert.ok(scale(tune.key).includes(pitchClass(e.pitch)));
+  }
+});
+
+test('every fourth pass the lead keeps a bar of silence before its biggest phrase', () => {
+  assert.equal(lead(8).length, 0);
+  const burst = lead(9);
+  // The next silent bar is four passes (eight bars) later; bars between are not silent.
+  for (let bar = 10; bar < 16; bar++) assert.ok(lead(bar).length > 0, `bar ${bar}`);
+  assert.equal(lead(16).length, 0);
+  const all = Array.from({ length: 16 }, (_, b) => lead(b)).flat();
+  assert.equal(Math.max(...burst.map((e) => e.velocity)), 127);
+  assert.equal(Math.max(...burst.map((e) => e.pitch)), Math.max(...all.map((e) => e.pitch)));
+  assert.equal(burst.at(-1)!.pitch, scream);
+  assert.equal(burst.at(-1)!.pitch - burst[0].pitch, 24); // a run two octaves up the key
+});
+
+test('the lead answers the synth\'s motif rather than copying it', () => {
+  // The synth hums the theme; the lead's phrase keeps the theme's rhythm
+  // but moves the other way.
+  const hum = PLAYERS.synth(tune, 0, 1).events.filter((e) => e.step < 11 && e.step >= 2);
+  const answer = lead(2).filter((e) => e.from !== undefined && e.step < 11);
+  assert.ok(hum[1].pitch > hum[0].pitch && answer[1].pitch < answer[0].pitch);
+  for (const bar of [2, 4]) for (const e of lead(bar)) assert.ok(scale(tune.key).includes(pitchClass(e.pitch)));
+  // On the next pass the answer moves up a fourth or a fifth.
+  assert.ok(lead(4)[0].pitch > lead(2)[0].pitch);
+  // Same seed, same result, with the rhythm phrase active too.
+  for (let bar = 0; bar < 20; bar++) assert.deepEqual(PLAYERS.lead(rhythm, bar, 5), PLAYERS.lead(rhythm, bar, 5));
 });
 
 test('each player now and then says a line, always on arrival', () => {
