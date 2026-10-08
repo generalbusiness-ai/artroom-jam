@@ -7,10 +7,25 @@ import { CLAP, KICK, LOW_TOM } from '../src/players/percussion.ts';
 import { scale, pitchClass } from '../src/music.ts';
 import { screamPitch } from '../src/players/lead.ts';
 import type { NoteEvent } from '../src/record.ts';
+import { inMood, NEUTRAL, REFERENCE } from '../src/mood.ts';
 
 const tune = interpretTune(THEME);
 const rhythm = interpretRhythm(RHYTHM, tune);
 const steps = (events: { step: number }[]) => [...new Set(events.map((e) => e.step))].sort((a, b) => a - b);
+
+test('a rhythm-first lead remains silent in every style, including mournful', () => {
+  const firstRhythm = interpretRhythm(RHYTHM);
+  assert.deepEqual(firstRhythm.theme, []);
+  for (const style of [NEUTRAL, ...Object.values(REFERENCE)]) {
+    for (const bar of [0, 1, 2, 8, 9]) {
+      const played = PLAYERS.lead(inMood(firstRhythm, style), bar, 1, style);
+      assert.deepEqual(played.events, []);
+      assert.equal(played.bars, 1);
+      assert.equal(played.say, PLAYERS.lead(firstRhythm, bar, 1).say);
+    }
+  }
+  assert.deepEqual(PLAYERS.lead(tune, 8, 1, REFERENCE['lonesome country']).events, []);
+});
 
 test('every player is deterministic and stays on its grid', () => {
   for (const [part, play] of Object.entries(PLAYERS)) {

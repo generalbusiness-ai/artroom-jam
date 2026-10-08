@@ -41,7 +41,16 @@ export function banter(lines: string[], bar: number, seed: number, salt: number)
 export function legato(interpretation: Interpretation, most: number): ThemeNote[] {
   const theme = interpretation.theme;
   const end = interpretation.themeBars * STEPS_PER_BAR;
-  return theme.map((n, i) => ({ ...n, length: Math.min(most, (theme[i + 1]?.step ?? end) - n.step) }));
+  let next = end;
+  const notes: ThemeNote[] = new Array(theme.length);
+  for (let i = theme.length - 1; i >= 0; i--) {
+    const n = theme[i];
+    // A closing note folded into the repeat can share the first onset.
+    // Hold both until the next distinct onset, rather than making one zero.
+    if (theme[i + 1] && theme[i + 1].step > n.step) next = theme[i + 1].step;
+    notes[i] = { ...n, length: Math.min(most, next - n.step) };
+  }
+  return notes;
 }
 
 // The notes of one bar of a theme, with steps counted from that bar.

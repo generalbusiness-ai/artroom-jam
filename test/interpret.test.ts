@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { interpretRhythm, interpretTune, keyOf, tempoFromOnsets } from '../src/interpret.ts';
 import { RHYTHM, THEME } from '../src/phrases.ts';
+import { synth } from '../src/players/synth.ts';
+import { themeBar } from '../src/players/player.ts';
 
 test('the theme quantizes to eight notes and names its tempo and key', () => {
   const i = interpretTune(THEME);
@@ -20,6 +22,30 @@ test('the theme quantizes to eight notes and names its tempo and key', () => {
     THEME.map((n) => n.pitch),
   );
   assert.equal(i.themeBars, 2);
+});
+
+test('a final tune onset on a bar line wraps into the playable hum and theme period without losing either downbeat note', () => {
+  for (const lastStep of [16, 32]) {
+    for (const repeatedPitch of [false, true]) {
+      const notes = Array.from({ length: lastStep / 2 + 1 }, (_, i) => ({
+        start: 3 + i / 4, duration: 0.125, pitch: repeatedPitch && i * 2 === lastStep ? 60 : 60 + i, velocity: 70 + i,
+      }));
+      const interpretation = interpretTune(notes);
+      assert.equal(interpretation.tempo, 120);
+      assert.equal(interpretation.themeBars, lastStep / 16);
+      const expected = notes.map((n, i) => ({ step: (i * 2) % lastStep, length: 1, pitch: n.pitch, velocity: n.velocity })).sort((a, b) => a.step - b.step);
+      assert.deepEqual(interpretation.theme, expected);
+      const hum = synth(interpretation, 0, 1);
+      assert.equal(hum.bars, interpretation.themeBars);
+      assert.deepEqual(hum.events.map(({ step, pitch, velocity, length }) => ({ step, pitch, velocity, length })),
+        expected.map((n) => ({ step: n.step, pitch: n.pitch + 12, velocity: n.velocity, length: 2 })));
+      const playable = Array.from({ length: hum.bars }, (_, bar) => hum.events.filter((e) => Math.floor(e.step / 16) === bar)).flat();
+      assert.equal(playable.length, notes.length);
+      assert.ok(playable.every((e) => e.step >= 0 && e.step < hum.bars * 16 && e.length >= 1));
+      assert.deepEqual(themeBar(interpretation, 0).filter((n) => n.step === 0), [expected[0], expected[1]]);
+      assert.deepEqual(themeBar(interpretation, interpretation.themeBars), themeBar(interpretation, 0));
+    }
+  }
 });
 
 test('the rhythm phrase sets tempo and grid and keeps the key and theme', () => {

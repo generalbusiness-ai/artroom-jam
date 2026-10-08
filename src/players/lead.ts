@@ -93,6 +93,9 @@ function stabbing(interpretation: Interpretation, bar: number, seed: number): Pl
 // place from a step above, slowly; screams sung an octave lower; notes held
 // longer, as the mood's note length says, up to the next note.
 function mournful(interpretation: Interpretation, played: Played, style: Style): Played {
+  // Rhythm-first sessions have no sung pitches; big passes also leave a
+  // deliberate silent bar. Neither needs a pitch or volume transform.
+  if (played.events.length === 0) return played;
   const scream = screamPitch(interpretation);
   const key = interpretation.key;
   const events = played.events.map((e, i, all) => {

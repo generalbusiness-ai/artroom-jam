@@ -2,10 +2,27 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { clipBand, CLIP_FROM, CLIP_TO } from '../src/clip.ts';
 import { activeAt, barStart, schedule } from '../src/record.ts';
+import { perform } from '../src/clip.ts';
+import { RHYTHM } from '../src/phrases.ts';
 
 const band = clipBand();
 const { log, rules } = band;
 const scheduled = schedule(log, rules).entries;
+
+test('a rhythm-first country session continues when the lead arrives', () => {
+  const rhythmBand = perform([
+    { at: 0, phrase: { kind: 'rhythm', onsets: RHYTHM } },
+    { at: 0, mood: 'lonesome country' },
+  ], 21);
+  const atLead = activeAt(rhythmBand.log, 17, rhythmBand.rules);
+  assert.equal(atLead.style.lead, 'mournful');
+  assert.deepEqual(atLead.interpretation!.interpretation.theme, []);
+  assert.deepEqual(atLead.parts.lead!.pattern!.events, []);
+  assert.ok(atLead.parts.percussion!.pattern!.events.length > 0);
+  assert.ok(atLead.parts.synth!.pattern!.events.length > 0);
+  assert.ok(rhythmBand.log.entries.some((e) => e.type === 'pattern' && e.part === 'lead'));
+  assert.ok(Number.isFinite(barStart(rhythmBand.log, 22, rhythmBand.rules)));
+});
 
 test('in the clip the agents take synth, percussion and lead, eight bars apart, and nobody takes bass', () => {
   const takes = scheduled.filter((s) => s.entry.type === 'take');

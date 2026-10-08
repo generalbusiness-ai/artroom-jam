@@ -105,8 +105,8 @@ export function tempoFromOnsets(times: number[]): { tempo: number; clear: boolea
   return { tempo: best, clear: true };
 }
 
-// The number of bars a figure fills. A last onset exactly on a bar line is the
-// downbeat of the repeat, so it does not add a bar.
+// The number of bars a figure fills. A last onset exactly on a bar line is
+// the downbeat of the repeat and is folded into its playable period.
 function barsFor(lastStep: number): number {
   if (lastStep > 0 && lastStep % STEPS_PER_BAR === 0) return lastStep / STEPS_PER_BAR;
   return Math.max(1, Math.ceil((lastStep + 1) / STEPS_PER_BAR));
@@ -140,9 +140,15 @@ export function interpretTune(notes: HummedNote[]): Interpretation {
   for (const n of sorted) {
     let s = Math.round((n.start - t0) / step);
     const last = theme.at(-1);
-    if (last && s <= last.step) s = last.step + 1; // two notes never share a step
+    if (last && s <= last.step) s = last.step + 1; // separate onsets before repeat folding
     theme.push({ step: s, length: Math.max(1, Math.round(n.duration / step)), pitch: n.pitch, velocity: n.velocity });
   }
+  const themeBars = barsFor(theme.at(-1)?.step ?? 0);
+  const span = themeBars * STEPS_PER_BAR;
+  // Keep both the original downbeat and the closing sung note, even when
+  // their pitches match: neither velocity nor note identity is discarded.
+  for (const n of theme) n.step %= span;
+  theme.sort((a, b) => a.step - b.step);
   return {
     from: 'tune',
     tempo,
@@ -151,7 +157,7 @@ export function interpretTune(notes: HummedNote[]): Interpretation {
     stepsPerBeat: STEPS_PER_BEAT,
     key: keyOf(sorted),
     theme,
-    themeBars: barsFor(theme.at(-1)?.step ?? 0),
+    themeBars,
     rhythm: [],
     rhythmBars: 0,
   };
