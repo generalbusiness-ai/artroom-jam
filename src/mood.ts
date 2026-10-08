@@ -128,7 +128,7 @@ export function readMood(text: string): Reading {
   const known: string[] = [];
   const fallback: string[] = [];
   for (const w of words) {
-    if (LEXICON[w]) known.push(w);
+    if (Object.hasOwn(LEXICON, w)) known.push(w);
     else {
       const near = nearestWord(w);
       if (near) {
@@ -139,7 +139,7 @@ export function readMood(text: string): Reading {
   }
   const heard = known.join(' ');
   if (known.length === 0) return { heard, fallback };
-  const style = REFERENCE[heard] ?? known.reduce<Style>((s, w) => ({ ...s, ...LEXICON[w] }), NEUTRAL);
+  const style = Object.hasOwn(REFERENCE, heard) ? REFERENCE[heard] : known.reduce<Style>((s, w) => ({ ...s, ...LEXICON[w] }), NEUTRAL);
   return { style, heard, fallback };
 }
 

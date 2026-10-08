@@ -135,6 +135,13 @@ test('an unknown phrase falls back as stated', () => {
   assert.equal(partly.style!.lead, 'mournful');
   // Nothing understood: the style stays as it was.
   assert.equal(readMood('polka').style, undefined);
+  // Object-prototype names are not lexicon entries; they must not corrupt
+  // the active tempo or future bar boundaries after a valid mood.
+  assert.equal(readMood('constructor').style, undefined);
+  const inherited = perform([...CLIP_SINGS, { at: 3, mood: 'detroit techno' }, { at: 6, mood: 'constructor' }], 9);
+  assert.deepEqual(activeAt(inherited.log, 8, inherited.rules).style, REFERENCE['detroit techno']);
+  assert.equal(activeAt(inherited.log, 8, inherited.rules).tempo, 111);
+  assert.ok(Number.isFinite(barStart(inherited.log, 9, inherited.rules)));
   const kept = perform([...CLIP_SINGS, { at: 3, mood: 'detroit techno' }, { at: 6, mood: 'polka' }], 9);
   const at8 = activeAt(kept.log, 8, kept.rules);
   assert.equal(at8.mood!.text, 'polka');

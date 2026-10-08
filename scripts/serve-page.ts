@@ -19,27 +19,31 @@ const types: Record<string, string> = {
   '.json': 'application/json',
 };
 
-createServer(async (req, res) => {
+const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://localhost');
   if (url.pathname === '/') {
     res.writeHead(302, { location: '/page/' });
     res.end();
     return;
   }
-  let path = normalize(join(root, decodeURIComponent(url.pathname)));
-  if (path !== root && !path.startsWith(root + sep)) {
-    res.writeHead(403);
-    res.end();
-    return;
-  }
-  if (url.pathname.endsWith('/')) path = join(path, 'index.html');
   try {
+    let path = normalize(join(root, decodeURIComponent(url.pathname)));
+    if (path !== root && !path.startsWith(root + sep)) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
+    if (url.pathname.endsWith('/')) path = join(path, 'index.html');
     let body: string | Buffer = await readFile(path);
     if (extname(path) === '.ts') body = stripTypeScriptTypes(body.toString('utf8'));
     res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
     res.end(body);
-  } catch {
-    res.writeHead(404);
-    res.end('not found');
+  } catch (error) {
+    res.writeHead(error instanceof URIError ? 400 : 404);
+    res.end(error instanceof URIError ? 'bad request' : 'not found');
   }
-}).listen(port, '127.0.0.1', () => console.log(`http://127.0.0.1:${port}/page/`));
+});
+server.listen(port, '127.0.0.1', () => {
+  const address = server.address();
+  console.log(`http://127.0.0.1:${typeof address === 'object' && address ? address.port : port}/page/`);
+});

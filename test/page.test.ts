@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { createInterface } from 'node:readline';
 import { advance, createLive, singNow } from '../page/live.ts';
 import { stageAt } from '../page/view.ts';
 import { RHYTHM, THEME } from '../src/phrases.ts';
@@ -82,4 +85,31 @@ test('the captions show recent banter with who said it', () => {
   assert.deepEqual(captions, [{ by: 'synth', text: 'I heard a tune. I think it was a tune.' }]);
   const later = stageAt(log, barStart(log, 9, rules) + 0.1, rules).captions;
   assert.ok(later.some((c) => c.by === 'percussion'));
+});
+
+// The actual loopback HTTP preview refuses malformed escapes and continues
+// serving; no browser, Artroom, private file or external provider runs.
+test('the local preview refuses malformed URI escapes and still serves the page', async () => {
+  const server = spawn(process.execPath, ['scripts/serve-page.ts'], {
+    cwd: new URL('..', import.meta.url), env: { ...process.env, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const lines = createInterface({ input: server.stdout });
+  try {
+    const [address] = await once(lines, 'line');
+    const url = new URL(address);
+    const refused = await fetch(new URL('/page/%', url))
+      .then(async (response) => [response.status, await response.text()])
+      .catch(() => [0, 'connection lost']); // An original crashing handler fails the boundary assertion.
+    assert.deepEqual(refused, [400, 'bad request']);
+    const page = await fetch(url);
+    assert.equal(page.status, 200);
+    assert.ok((await page.text()).includes('<title>Jam room</title>'));
+  } finally {
+    if (server.exitCode === null && server.signalCode === null) {
+      const exited = once(server, 'exit');
+      server.kill();
+      await exited;
+    }
+    lines.close();
+  }
 });
