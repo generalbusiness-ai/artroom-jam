@@ -17,7 +17,7 @@
 </head>
 <body>
 <h1>J0: hum to theme</h1>
-<p class="note">Nothing here leaves this page: no network requests, no uploads. The audio is not saved; the log keeps only the notes, the timing and your answer.</p>
+<p class="note">Core path B processes audio locally without network requests or uploads. Its log saves notes, timing and your answer, not audio. Optional path A executes code you select with this page's privileges; use only a bundle you trust. This page does not block that code from reading page data or using the network.</p>
 
 <fieldset>
   <legend>1. Who and what</legend>
@@ -73,7 +73,7 @@ function transcribePhrase(samples, sr, kind) {
 }
 if (typeof document === 'undefined') { /* Node test context: stop here */ } else (function () {
   const $ = (id) => document.getElementById(id);
-  let ctx = null, current = null, log = [], recNodes = null, chunks = [], recSr = 0;
+  let ctx = null, current = null, generation = 0, log = [], recNodes = null, chunks = [], recSr = 0;
   try { log = JSON.parse(localStorage.getItem('j0log') || '[]'); } catch (e) { log = []; }
   const setStatus = (s) => { $('status').textContent = s; };
   const upd = () => { $('count').textContent = log.length + ' answers in the log'; try { localStorage.setItem('j0log', JSON.stringify(log)); } catch (e) {} };
@@ -84,7 +84,11 @@ if (typeof document === 'undefined') { /* Node test context: stop here */ } else
   const nn = (m) => NAMES[m % 12] + (Math.floor(m / 12) - 1);
 
   function show(res) {
+    res.generation = ++generation;
     current = res;
+    $('pastatus').textContent = window.__paRun
+      ? (res.kind === 'tune' ? 'Path A waiting to run for this phrase.' : 'Path A runs on tunes only.')
+      : 'Path A has not been loaded.';
     const rows = res.notes
       ? '<tr><th>#</th><th>start s</th><th>dur s</th><th>MIDI</th><th>name</th><th>vel</th></tr>' + res.notes.map((n, i) => `<tr><td>${i + 1}</td><td>${n.start.toFixed(2)}</td><td>${n.duration.toFixed(2)}</td><td>${n.pitch}</td><td>${nn(n.pitch)}</td><td>${n.velocity}</td></tr>`).join('')
       : '<tr><th>#</th><th>time s</th><th>class</th><th>centroid Hz</th></tr>' + res.hits.map((h, i) => `<tr><td>${i + 1}</td><td>${h.time.toFixed(2)}</td><td>${h.cls}</td><td>${h.centroidHz}</td></tr>`).join('');
@@ -99,7 +103,7 @@ if (typeof document === 'undefined') { /* Node test context: stop here */ } else
     const res = transcribePhrase(samples, sr, kind());
     res.durationSec = samples.length / sr; res.sampleRate = sr;
     show(res);
-    if (kind() === 'tune' && window.__paRun) runPathA(samples, sr);
+    if (res.kind === 'tune' && window.__paRun) runPathA(res, samples, sr);
   }
 
   function play() {
@@ -126,7 +130,7 @@ if (typeof document === 'undefined') { /* Node test context: stop here */ } else
 
   function answer(v) {
     if (!current) return;
-    log.push({ when: new Date().toISOString(), person: $('person').value, label: $('label').value, kind: current.kind, path: 'B', verdict: v, durationSec: current.durationSec, sampleRate: current.sampleRate, transcribeMs: current.ms, notes: current.notes || null, hits: current.hits || null, hitsPerSecond: current.hitsPerSecond || null, pathA: current.pathA || null });
+    log.push({ when: new Date().toISOString(), person: $('person').value, label: $('label').value, kind: current.kind, path: 'B', verdict: v, durationSec: current.durationSec, sampleRate: current.sampleRate, transcribeMs: current.ms, notes: current.notes || null, hits: current.hits || null, hitsPerSecond: current.hitsPerSecond || null, pathA: current.pathA ? { ...current.pathA } : null });
     upd(); setStatus('Answer recorded: ' + v + '. Record the next phrase.');
     for (const id of ['yes', 'no']) $(id).disabled = true;
   }
@@ -175,15 +179,24 @@ if (typeof document === 'undefined') { /* Node test context: stop here */ } else
       $('pastatus').textContent = 'Path A loaded in ' + (performance.now() - t).toFixed(0) + ' ms. It runs after each tune.';
     } catch (err) { $('pastatus').textContent = 'Path A failed to load: ' + err.message; }
   };
-  async function runPathA(samples, sr) {
+  async function runPathA(phrase, samples, sr) {
+    const phraseGeneration = phrase.generation;
+    const isCurrent = () => current === phrase && generation === phraseGeneration;
+    phrase.pathA = { status: 'pending' };
+    $('pastatus').textContent = 'Path A running for this phrase. A path B answer now will record path A as pending.';
     try {
-      const BP = window.BP, x = J0.resample(samples, sr, 22050), fr = [], on = [], co = [], t = performance.now();
-      await window.__paModel.evaluateModel(x, (f, o, c) => { fr.push(...f); on.push(...o); co.push(...c); }, () => {});
+      const BP = window.BP, model = window.__paModel, x = J0.resample(samples, sr, 22050), fr = [], on = [], co = [], t = performance.now();
+      await model.evaluateModel(x, (f, o, c) => { fr.push(...f); on.push(...o); co.push(...c); }, () => {});
+      if (!isCurrent()) return;
       const ms = performance.now() - t;
       const notes = BP.noteFramesToTime(BP.addPitchBendsToNoteEvents(co, BP.outputToNotesPoly(fr, on, 0.25, 0.25, 5))).map(n => ({ start: +n.startTimeSeconds.toFixed(3), duration: +n.durationSeconds.toFixed(3), pitch: n.pitchMidi, velocity: Math.round(n.amplitude * 127) }));
-      current.pathA = { ms, notes };
+      phrase.pathA = { status: 'completed', ms, notes };
       $('pastatus').textContent = 'Path A: ' + notes.length + ' raw notes in ' + ms.toFixed(0) + ' ms (kept in the log beside path B).';
-    } catch (err) { $('pastatus').textContent = 'Path A run failed: ' + err.message; }
+    } catch (err) {
+      if (!isCurrent()) return;
+      phrase.pathA = { status: 'failed', error: err.message };
+      $('pastatus').textContent = 'Path A run failed: ' + err.message;
+    }
   }
 })();
 </script>

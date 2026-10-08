@@ -454,6 +454,10 @@ collect another singer or repeat Hugh's judgments.
 6. Optional path A: choose `work/out/bp-bundle.js`, and from
    `work/node_modules/@spotify/basic-pitch/model/` the files `model.json` and
    `group1-shard1of1.bin`, in the "path A" box.
+   Use only a bundle you trust: it executes with the page's privileges.
+   The page does not enforce network blocking or isolate that code from page
+   data. The local, no-upload behavior of core path B does not guarantee the
+   behavior of an arbitrary optional bundle.
 
 ## Final spike recommendation
 
@@ -576,3 +580,38 @@ The local runner uses installed FFmpeg, Node built-ins and the existing synth,
 tracker and MIDI parser. The generated harness and transcription source were
 not changed. Syntax, local JSON/link checks, PCM conversion checks, literal
 MIDI/WAV readback and `git diff --check` cover this addition.
+
+## Harness review repairs, 2026-10-08
+
+The complete combined-source review found that optional path A could finish
+after another phrase replaced the displayed result. Its result was then
+written to the current phrase rather than the phrase that started the run.
+The template now captures the phrase and its generation, and checks both
+before accepting a completion or failure. The generated harness was rebuilt
+from that template and the unchanged transcription source. A stale result
+changes neither the replacement phrase nor its status text.
+
+Path A records `pending`, `completed` or `failed`. A path B judgment made
+while path A is pending keeps that status in its saved answer; a later
+completion does not silently revise the answer. Completed results retain
+the existing notes and timing. Failed results retain the error message.
+The A/B routes and file/record controls remain available. The privacy text
+now distinguishes local core path B from selected optional executable code,
+which must be trusted and is not confined by an enforced network policy.
+
+Three focused Node tests in `test/j0-harness.test.ts` pass: exact generated
+template/source parity, a deferred success after replacement plus a current
+success and saved pending answers, and a deferred failure after replacement
+plus a current failure. They run the actual inline handlers with DOM/storage
+stand-ins, an inert transcription result and manually settled fake model
+promises. They do not run a model, audio input, microphone, browser, optional
+bundle, provider, backend or private file. A scratch control restoring
+unguarded writes to `current.pathA` fails both asynchronous assertions,
+including a replacement answer incorrectly marked completed. The final
+combined Jam suite is a separate producer check after all review repairs.
+
+This race witness does not declare the earlier Node, reference or five-phrase
+evidence corrupt. Hugh's judgments and the one-singer amendment above remain
+unchanged. The optional loader and microphone still lack current browser
+evidence; full J0/J2/T5 delivery, actual agents, musical acceptance, deployed
+native-room behavior, and rights for published audio/video remain owed.
