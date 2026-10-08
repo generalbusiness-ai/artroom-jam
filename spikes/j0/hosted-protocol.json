@@ -1,0 +1,56 @@
+{
+  "protocol_version": 1,
+  "frozen_date": "2026-10-06",
+  "authorization": "Planner record 475c57cac0cb27cfc729915f0919c775f23e95d7: Hugh, 2026-10-06 07:15; hosted models and this reference clip leaving the machine allowed; Workers AI first, OpenRouter second.",
+  "audio": {
+    "name": "hum-01-tune.wav",
+    "sha256": "595add9d8b3b0863974b395438b6436682e3aa8253beacf2ed35ced916fc5fd8",
+    "bytes": 370518,
+    "duration_seconds": 4.2,
+    "dataset": "One reference phrase, one singer, excerpt of published sketch; not Hugh's voice."
+  },
+  "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+  "parameters": {
+    "model": "google/gemini-3.8-flash",
+    "max_tokens": 3000,
+    "temperature": 0,
+    "reasoning": { "effort": "low" },
+    "stream": false,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "hummed_notes",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "notes": {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "pitch": { "type": "integer", "minimum": 0, "maximum": 127 },
+                  "start": { "type": "number", "minimum": 0 },
+                  "duration": { "type": "number", "exclusiveMinimum": 0 }
+                },
+                "required": ["pitch", "start", "duration"],
+                "additionalProperties": false
+              }
+            },
+            "observations": { "type": "string" }
+          },
+          "required": ["notes", "observations"],
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "prompt": "Analyze the attached audio directly. Transcribe only the pitched hummed or sung melody into a monophonic sequence of note events. Distinguish pitched voice from unpitched mouth percussion and exclude percussion. Estimate the actual sounding pitch as an integer MIDI note number (0 to 127, where 69 is A4 at 440 Hz); do not transpose or normalize the melody to a key. Give each start time and duration in seconds from the beginning of the audio, in chronological order. Preserve separate sung articulations even when they repeat the same pitch. Do not invent events if you cannot determine pitches: return an empty notes array and explain the limitation in observations. Return only the requested JSON with notes (pitch, start, duration) and a brief observations string describing uncertainty. Do not return lyrics or identify a song.",
+  "limits": {
+    "inference_calls": 1,
+    "timeout_seconds": 120,
+    "automatic_inference_retries": 0,
+    "generation_metadata_queries_if_cost_missing": 2
+  }
+}

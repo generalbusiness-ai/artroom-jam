@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J0 hum to theme harness</title>
+<style>
+  body { font: 16px/1.45 system-ui, sans-serif; max-width: 46rem; margin: 1.5rem auto; padding: 0 1rem; color: #111; background: #fff; }
+  h1 { font-size: 1.3rem; } h2 { font-size: 1.05rem; margin-top: 1.6rem; }
+  fieldset { border: 1px solid #bbb; margin: 0.8rem 0; padding: 0.6rem 0.9rem; }
+  label { margin-right: 1rem; } input[type=text] { width: 9rem; }
+  button { font: inherit; padding: 0.35rem 0.8rem; margin: 0.2rem 0.3rem 0.2rem 0; }
+  table { border-collapse: collapse; margin: 0.5rem 0; } td, th { border: 1px solid #ccc; padding: 0.15rem 0.6rem; text-align: right; }
+  #status { min-height: 1.4rem; font-weight: 600; } .note { color: #444; font-size: 0.92rem; }
+  @media (prefers-color-scheme: dark) { body { background: #151515; color: #eee; } td, th, fieldset { border-color: #555; } .note { color: #aaa; } }
+</style>
+</head>
+<body>
+<h1>J0: hum to theme</h1>
+<p class="note">Core path B processes audio locally without network requests or uploads. Its log saves notes, timing and your answer, not audio. Optional path A executes code you select with this page's privileges; use only a bundle you trust. This page does not block that code from reading page data or using the network.</p>
+
+<fieldset>
+  <legend>1. Who and what</legend>
+  <label>Person <input type="text" id="person" placeholder="a name or initials"></label>
+  <label>Phrase label <input type="text" id="label" placeholder="for example p1"></label>
+  <div>
+    <label><input type="radio" name="kind" value="tune" checked> Hummed tune (notes)</label>
+    <label><input type="radio" name="kind" value="rhythm"> Tapped or mouthed rhythm (hits)</label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>2. Record or load</legend>
+  <button id="rec">Record</button> <button id="stop" disabled>Stop</button>
+  <label>or a WAV file (16-bit PCM): <input type="file" id="wavfile" accept=".wav,audio/wav"></label>
+  <div class="note">Record for 3 to 8 seconds. Echo cancellation, noise suppression and automatic gain are asked to be off, so the pitch is not distorted.</div>
+</fieldset>
+
+<div id="status" role="status">Ready.</div>
+
+<h2>3. Transcription (path B: pitch tracker, no model)</h2>
+<div id="summary"></div>
+<button id="playback" disabled>Play the transcription</button>
+<button id="again" disabled>Play it again</button>
+<div id="table"></div>
+
+<h2>4. Your judgment</h2>
+<p>Having heard the playback of your own phrase:</p>
+<button id="yes" disabled>recognizably the tune</button>
+<button id="no" disabled>not</button>
+<button id="dl">Download the log (JSON)</button>
+<span id="count" class="note"></span>
+
+<h2>Optional: path A (basic-pitch model)</h2>
+<p class="note">The model package has no browser build; a page needs a bundle made with a build tool. If you have the three files made by the spike (<code>bp-bundle.js</code>, <code>model.json</code>, <code>group1-shard1of1.bin</code>), choose them here and path A runs as well, on tunes only. This route has not been run in a browser by its author.</p>
+<input type="file" id="pa" multiple accept=".js,.json,.bin">
+<div id="pastatus" class="note"></div>
+
+<script>
+/*TRANSCRIBE_JS*/
+</script>
+<script>
+// Phrase transcription entry point: the same function the Node test calls.
+function transcribePhrase(samples, sr, kind) {
+  const hop = Math.round(sr / 100);
+  const t0 = performance.now();
+  if (kind === 'rhythm') {
+    const o = J0.detectOnsets(samples, sr);
+    return { kind, ms: performance.now() - t0, hits: o.hits.map(h => ({ time: h.time, cls: h.cls, centroidHz: h.centroidHz })), medianIoiSec: o.medianIoiSec, hitsPerSecond: o.hitsPerSecondMedian, splitHz: o.splitHz };
+  }
+  const r = J0.transcribeHum(samples, sr, { hop });
+  return { kind, ms: performance.now() - t0, notes: r.notes.map(n => ({ start: +n.start.toFixed(3), duration: +n.duration.toFixed(3), pitch: n.pitch, velocity: n.velocity })) };
+}
+if (typeof document === 'undefined') { /* Node test context: stop here */ } else (function () {
+  const $ = (id) => document.getElementById(id);
+  let ctx = null, current = null, generation = 0, log = [], recNodes = null, chunks = [], recSr = 0;
+  try { log = JSON.parse(localStorage.getItem('j0log') || '[]'); } catch (e) { log = []; }
+  const setStatus = (s) => { $('status').textContent = s; };
+  const upd = () => { $('count').textContent = log.length + ' answers in the log'; try { localStorage.setItem('j0log', JSON.stringify(log)); } catch (e) {} };
+  upd();
+  const kind = () => document.querySelector('input[name=kind]:checked').value;
+  const audio = () => ctx || (ctx = new (window.AudioContext || window.webkitAudioContext)());
+  const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const nn = (m) => NAMES[m % 12] + (Math.floor(m / 12) - 1);
+
+  function show(res) {
+    res.generation = ++generation;
+    current = res;
+    $('pastatus').textContent = window.__paRun
+      ? (res.kind === 'tune' ? 'Path A waiting to run for this phrase.' : 'Path A runs on tunes only.')
+      : 'Path A has not been loaded.';
+    const rows = res.notes
+      ? '<tr><th>#</th><th>start s</th><th>dur s</th><th>MIDI</th><th>name</th><th>vel</th></tr>' + res.notes.map((n, i) => `<tr><td>${i + 1}</td><td>${n.start.toFixed(2)}</td><td>${n.duration.toFixed(2)}</td><td>${n.pitch}</td><td>${nn(n.pitch)}</td><td>${n.velocity}</td></tr>`).join('')
+      : '<tr><th>#</th><th>time s</th><th>class</th><th>centroid Hz</th></tr>' + res.hits.map((h, i) => `<tr><td>${i + 1}</td><td>${h.time.toFixed(2)}</td><td>${h.cls}</td><td>${h.centroidHz}</td></tr>`).join('');
+    $('table').innerHTML = '<table>' + rows + '</table>';
+    const count = res.notes ? res.notes.length + ' notes' : res.hits.length + ' hits, about ' + res.hitsPerSecond + ' per second';
+    $('summary').textContent = `${count}; recording ${res.durationSec.toFixed(1)} s at ${res.sampleRate} Hz; transcription took ${res.ms.toFixed(0)} ms.`;
+    for (const id of ['playback', 'again', 'yes', 'no']) $(id).disabled = false;
+    setStatus('Transcribed. Play the transcription, then answer.');
+  }
+
+  function handleSamples(samples, sr) {
+    const res = transcribePhrase(samples, sr, kind());
+    res.durationSec = samples.length / sr; res.sampleRate = sr;
+    show(res);
+    if (res.kind === 'tune' && window.__paRun) runPathA(res, samples, sr);
+  }
+
+  function play() {
+    if (!current) return;
+    const ac = audio(); if (ac.state === 'suspended') ac.resume();
+    const t0 = ac.currentTime + 0.15;
+    if (current.notes) {
+      for (const n of current.notes) {
+        const o = ac.createOscillator(), g = ac.createGain(), f = 440 * Math.pow(2, (n.pitch - 69) / 12), a = 0.3 * n.velocity / 127, s = t0 + n.start, e = s + n.duration + 0.05;
+        o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(a, s + 0.01); g.gain.setValueAtTime(a, e - 0.05); g.gain.linearRampToValueAtTime(0, e);
+        o.connect(g).connect(ac.destination); o.start(s); o.stop(e + 0.02);
+      }
+    } else {
+      const nb = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.12), ac.sampleRate), d = nb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / ac.sampleRate * 38);
+      for (const h of current.hits) {
+        const s = t0 + h.time;
+        if (h.cls === 'low') { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(140, s); o.frequency.exponentialRampToValueAtTime(50, s + 0.1); g.gain.setValueAtTime(0.7, s); g.gain.exponentialRampToValueAtTime(0.001, s + 0.18); o.connect(g).connect(ac.destination); o.start(s); o.stop(s + 0.2); }
+        else { const src = ac.createBufferSource(), g = ac.createGain(), hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1500; g.gain.value = 0.5; src.buffer = nb; src.connect(hp).connect(g).connect(ac.destination); src.start(s); }
+      }
+    }
+  }
+  $('playback').onclick = play; $('again').onclick = play;
+
+  function answer(v) {
+    if (!current) return;
+    log.push({ when: new Date().toISOString(), person: $('person').value, label: $('label').value, kind: current.kind, path: 'B', verdict: v, durationSec: current.durationSec, sampleRate: current.sampleRate, transcribeMs: current.ms, notes: current.notes || null, hits: current.hits || null, hitsPerSecond: current.hitsPerSecond || null, pathA: current.pathA ? { ...current.pathA } : null });
+    upd(); setStatus('Answer recorded: ' + v + '. Record the next phrase.');
+    for (const id of ['yes', 'no']) $(id).disabled = true;
+  }
+  $('yes').onclick = () => answer('recognizably the tune'); $('no').onclick = () => answer('not');
+  $('dl').onclick = () => { const b = new Blob([JSON.stringify(log, null, 1)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'j0-log.json'; a.click(); };
+
+  $('wavfile').onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const w = J0.decodeWav(new Uint8Array(await f.arrayBuffer())); handleSamples(w.samples, w.sr); } catch (err) { setStatus('Could not read that file: ' + err.message); }
+  };
+
+  $('rec').onclick = async () => {
+    try {
+      const ac = audio(); if (ac.state === 'suspended') await ac.resume();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+      const src = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(4096, 1, 1);
+      chunks = []; recSr = ac.sampleRate;
+      proc.onaudioprocess = (ev) => { chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0))); if (chunks.length * 4096 > recSr * 12) $('stop').onclick(); };
+      const mute = ac.createGain(); mute.gain.value = 0;
+      src.connect(proc); proc.connect(mute).connect(ac.destination);
+      recNodes = { stream, src, proc, mute };
+      $('rec').disabled = true; $('stop').disabled = false; setStatus('Recording. Hum or tap now, then press Stop.');
+    } catch (err) { setStatus('Microphone not available: ' + err.message); }
+  };
+  $('stop').onclick = () => {
+    if (!recNodes) return;
+    recNodes.proc.disconnect(); recNodes.src.disconnect(); recNodes.stream.getTracks().forEach(t => t.stop()); recNodes = null;
+    $('rec').disabled = false; $('stop').disabled = true;
+    let n = 0; for (const c of chunks) n += c.length;
+    const x = new Float32Array(n); let k = 0; for (const c of chunks) { x.set(c, k); k += c.length; }
+    chunks = []; handleSamples(x, recSr);
+  };
+
+  // ---- optional path A, from three local files the person chooses
+  let paFiles = {};
+  $('pa').onchange = async (e) => {
+    paFiles = {}; for (const f of e.target.files) paFiles[f.name] = f;
+    if (!(paFiles['bp-bundle.js'] && paFiles['model.json'] && paFiles['group1-shard1of1.bin'])) { $('pastatus').textContent = 'Need all three files: bp-bundle.js, model.json, group1-shard1of1.bin.'; return; }
+    try {
+      const code = await paFiles['bp-bundle.js'].text(), url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+      await new Promise((res, rej) => { const s = document.createElement('script'); s.src = url; s.onload = res; s.onerror = () => rej(new Error('bundle did not load')); document.head.appendChild(s); });
+      const mj = JSON.parse(await paFiles['model.json'].text()), wb = await paFiles['group1-shard1of1.bin'].arrayBuffer(), BP = window.BP;
+      const t = performance.now();
+      const model = await BP.tf.loadGraphModel({ load: async () => ({ modelTopology: mj.modelTopology, format: mj.format, generatedBy: mj.generatedBy, convertedBy: mj.convertedBy, weightSpecs: mj.weightsManifest[0].weights, weightData: wb }) });
+      window.__paModel = new BP.BasicPitch(Promise.resolve(model)); window.__paRun = true;
+      $('pastatus').textContent = 'Path A loaded in ' + (performance.now() - t).toFixed(0) + ' ms. It runs after each tune.';
+    } catch (err) { $('pastatus').textContent = 'Path A failed to load: ' + err.message; }
+  };
+  async function runPathA(phrase, samples, sr) {
+    const phraseGeneration = phrase.generation;
+    const isCurrent = () => current === phrase && generation === phraseGeneration;
+    phrase.pathA = { status: 'pending' };
+    $('pastatus').textContent = 'Path A running for this phrase. A path B answer now will record path A as pending.';
+    try {
+      const BP = window.BP, model = window.__paModel, x = J0.resample(samples, sr, 22050), fr = [], on = [], co = [], t = performance.now();
+      await model.evaluateModel(x, (f, o, c) => { fr.push(...f); on.push(...o); co.push(...c); }, () => {});
+      if (!isCurrent()) return;
+      const ms = performance.now() - t;
+      const notes = BP.noteFramesToTime(BP.addPitchBendsToNoteEvents(co, BP.outputToNotesPoly(fr, on, 0.25, 0.25, 5))).map(n => ({ start: +n.startTimeSeconds.toFixed(3), duration: +n.durationSeconds.toFixed(3), pitch: n.pitchMidi, velocity: Math.round(n.amplitude * 127) }));
+      phrase.pathA = { status: 'completed', ms, notes };
+      $('pastatus').textContent = 'Path A: ' + notes.length + ' raw notes in ' + ms.toFixed(0) + ' ms (kept in the log beside path B).';
+    } catch (err) {
+      if (!isCurrent()) return;
+      phrase.pathA = { status: 'failed', error: err.message };
+      $('pastatus').textContent = 'Path A run failed: ' + err.message;
+    }
+  }
+})();
+</script>
+</body>
+</html>
