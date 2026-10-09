@@ -5,23 +5,23 @@ import { RHYTHM, THEME } from '../src/phrases.ts';
 import { synth } from '../src/players/synth.ts';
 import { themeBar } from '../src/players/player.ts';
 
-test('the theme quantizes to eight notes and names its tempo and key', () => {
+test('the original theme quantizes to three notes and names its tempo and key', () => {
   const i = interpretTune(THEME);
-  assert.equal(i.theme.length, 8);
-  assert.equal(i.tempo, 105);
+  assert.equal(i.theme.length, 3);
+  assert.equal(i.tempo, 120);
   assert.equal(i.tempoClear, true);
-  assert.equal(i.key.name, 'G# minor');
+  assert.equal(i.key.name, 'G minor');
   assert.equal(i.beatsPerBar, 4);
   assert.equal(i.stepsPerBeat, 4);
   assert.deepEqual(
     i.theme.map((n) => n.step),
-    [0, 2, 5, 8, 11, 13, 15, 18],
+    [0, 4, 8],
   );
   assert.deepEqual(
     i.theme.map((n) => n.pitch),
     THEME.map((n) => n.pitch),
   );
-  assert.equal(i.themeBars, 2);
+  assert.equal(i.themeBars, 1);
 });
 
 test('a final tune onset on a bar line wraps into the playable hum and theme period without losing either downbeat note', () => {
@@ -52,15 +52,15 @@ test('the rhythm phrase sets tempo and grid and keeps the key and theme', () => 
   const tune = interpretTune(THEME);
   const i = interpretRhythm(RHYTHM, tune);
   assert.equal(i.from, 'rhythm');
-  assert.equal(i.tempo, 119);
+  assert.equal(i.tempo, 120);
   assert.equal(i.key.name, tune.key.name);
   assert.deepEqual(i.theme, tune.theme);
-  assert.equal(i.rhythmBars, 2);
-  // The last onset falls on the downbeat of the repeat and joins the first.
-  assert.equal(i.rhythm.length, RHYTHM.length - 1);
+  assert.equal(i.rhythmBars, 1);
+  // The original pattern has eight onsets inside one bar.
+  assert.equal(i.rhythm.length, RHYTHM.length);
   assert.deepEqual(
     i.rhythm.filter((h) => h.cls === 'low').map((h) => h.step),
-    [3, 4, 20, 21, 22],
+    [0, 6, 10],
   );
 });
 

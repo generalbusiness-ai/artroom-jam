@@ -43,7 +43,7 @@ test('every player is deterministic and stays on its grid', () => {
 test('the synth hums the theme back first, then plays the groove with no drums and no lead', () => {
   const first = PLAYERS.synth(tune, 0, 1);
   assert.equal(first.bars, tune.themeBars);
-  assert.equal(first.events.length, 8);
+  assert.equal(first.events.length, 3);
   assert.ok(first.events.every((e) => e.voice === 'hum'));
   assert.ok(first.say);
 
@@ -53,15 +53,15 @@ test('the synth hums the theme back first, then plays the groove with no drums a
     for (const v of voices) assert.ok(['bass', 'stab', 'arp'].includes(v), v);
   }
   const groove = PLAYERS.synth(tune, 2, 1).events;
-  // The bass sits on every beat, on the root (G#) or the fifth (D#).
+  // The bass sits on every beat, on the root (G) or the fifth (D).
   const bassOnBeats = groove.filter((e) => e.voice === 'bass' && e.step % 4 === 0);
   assert.deepEqual(steps(bassOnBeats), [0, 4, 8, 12]);
-  for (const e of groove.filter((e) => e.voice === 'bass')) assert.ok([8, 3].includes(pitchClass(e.pitch)));
+  for (const e of groove.filter((e) => e.voice === 'bass')) assert.ok([7, 2].includes(pitchClass(e.pitch)));
   // The stab is off the beat.
   assert.deepEqual(steps(groove.filter((e) => e.voice === 'stab')), [2, 6, 10, 14]);
   // The arpeggio arrives later, in the key, and its filter opens.
   const arp = (bar: number) => PLAYERS.synth(tune, bar, 1).events.filter((e) => e.voice === 'arp');
-  assert.equal(arp(3).length, 0);
+  assert.equal(arp(2).length, 0);
   assert.equal(arp(4).length, 8);
   for (const e of arp(4)) assert.ok(scale(tune.key).includes(pitchClass(e.pitch)));
   assert.ok(arp(8)[0].filter! > arp(4)[0].filter!);
@@ -80,9 +80,9 @@ test('percussion keeps the floor, claps on 2 and 4, and fills every eighth bar',
 test('percussion follows the sung rhythm when one is active', () => {
   const bar0 = PLAYERS.percussion(rhythm, 0, 1).events;
   const bar1 = PLAYERS.percussion(rhythm, 1, 1).events;
-  assert.deepEqual(steps(bar0.filter((e) => e.pitch === LOW_TOM)), [3, 4]);
-  assert.deepEqual(steps(bar1.filter((e) => e.pitch === LOW_TOM)), [4, 5, 6]);
-  assert.deepEqual(steps(bar0.filter((e) => e.voice === 'hat')), [0, 6, 8, 10, 12, 14]);
+  assert.deepEqual(steps(bar0.filter((e) => e.pitch === LOW_TOM)), [0, 6, 10]);
+  assert.deepEqual(steps(bar1.filter((e) => e.pitch === LOW_TOM)), [0, 6, 10]);
+  assert.deepEqual(steps(bar0.filter((e) => e.voice === 'hat')), [2, 4, 8, 12, 14]);
 });
 
 const lead = (bar: number, seed = 1, i = tune) => PLAYERS.lead(i, bar, seed).events;
@@ -144,7 +144,7 @@ test('the lead ends every phrase with a flourish: a trill, a fast run or a screa
   }
   assert.deepEqual([...kinds].sort(), ['run', 'scream', 'trill']);
   // Two octaves above the synth's hum of the most sung note.
-  assert.equal(scream, Math.max(...PLAYERS.synth(tune, 0, 1).events.filter((e) => e.pitch % 12 === 8).map((e) => e.pitch)) + 24);
+  assert.equal(scream, Math.max(...PLAYERS.synth(tune, 0, 1).events.filter((e) => e.pitch % 12 === 0).map((e) => e.pitch)) + 24);
 });
 
 test('the lead shows off once per pass with a run up the key, and lets it hang', () => {

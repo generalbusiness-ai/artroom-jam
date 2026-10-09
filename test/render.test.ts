@@ -13,7 +13,7 @@ const { log, rules } = band;
 test('four rendered bars have the right length and peak under 0 dBFS', () => {
   const samples = normalize(renderBars(log, 1, 5, rules));
   const seconds = barStart(log, 5, rules) - barStart(log, 1, rules);
-  assert.ok(Math.abs(seconds - 4 * (240 / 105)) < 1e-9); // four bars at 105 beats per minute
+  assert.ok(Math.abs(seconds - 4 * (240 / 120)) < 1e-9); // four bars at 120 beats per minute
   assert.equal(samples.length, Math.ceil((seconds + TAIL) * SAMPLE_RATE));
   assert.ok(peak(samples) < 1);
   assert.ok(peak(samples) > 0.5);

@@ -1,38 +1,32 @@
-// The two phrases the person sang, as spike J0's in-page tracker transcribed
-// them. They stand in for the microphone.
-
+// Application-owned symbolic demo phrases. No microphone, transcription,
+// private recording or published melody supplies these live/clip defaults.
 import type { HummedNote, Onset } from './interpret.ts';
 
-// The theme: a hummed tune.
-export const THEME: HummedNote[] = [
-  { start: 0.138, duration: 0.11, pitch: 45, velocity: 76 },
-  { start: 0.468, duration: 0.16, pitch: 50, velocity: 122 },
-  { start: 0.798, duration: 0.23, pitch: 56, velocity: 126 },
-  { start: 1.258, duration: 0.24, pitch: 56, velocity: 126 },
-  { start: 1.688, duration: 0.14, pitch: 56, velocity: 121 },
-  { start: 1.988, duration: 0.16, pitch: 52, velocity: 113 },
-  { start: 2.308, duration: 0.22, pitch: 58, velocity: 127 },
-  { start: 2.708, duration: 0.29, pitch: 51, velocity: 101 },
+// Exact retained fixtures from spikes/j2/themes.json (synthetic-c and
+// synthetic-eb), authored for this application's J2 harness.
+export const ORIGINAL_TUNES: { id: string; label: string; notes: HummedNote[] }[] = [
+  { id: 'synthetic-c', label: 'Original C phrase', notes: [
+    { start: 0, duration: 0.35, pitch: 60, velocity: 80 },
+    { start: 0.5, duration: 0.35, pitch: 64, velocity: 85 },
+    { start: 1, duration: 0.7, pitch: 67, velocity: 90 },
+  ] },
+  { id: 'synthetic-eb', label: 'Original E-flat phrase', notes: [
+    { start: 0, duration: 0.35, pitch: 63, velocity: 80 },
+    { start: 0.5, duration: 0.35, pitch: 70, velocity: 85 },
+    { start: 1, duration: 0.7, pitch: 67, velocity: 90 },
+  ] },
 ];
+export const THEME = ORIGINAL_TUNES[0].notes;
 
-// The rhythm phrase: onsets with a high or low class.
+// Original application-owned onset figure authored for this source task,
+// 9 October 2026: alternating accents on a steady eighth-note pulse.
 export const RHYTHM: Onset[] = [
-  { time: 0.081, cls: 'high' },
-  { time: 0.47, cls: 'low' },
-  { time: 0.592, cls: 'low' },
-  { time: 0.848, cls: 'high' },
-  { time: 1.091, cls: 'high' },
-  { time: 1.353, cls: 'high' },
-  { time: 1.596, cls: 'high' },
-  { time: 1.852, cls: 'high' },
-  { time: 2.101, cls: 'high' },
-  { time: 2.485, cls: 'high' },
-  { time: 2.606, cls: 'low' },
-  { time: 2.74, cls: 'low' },
-  { time: 2.868, cls: 'low' },
-  { time: 3.106, cls: 'high' },
-  { time: 3.367, cls: 'high' },
-  { time: 3.611, cls: 'high' },
-  { time: 3.75, cls: 'high' },
-  { time: 4.11, cls: 'high' },
+  { time: 0, cls: 'low' },
+  { time: 0.25, cls: 'high' },
+  { time: 0.5, cls: 'high' },
+  { time: 0.75, cls: 'low' },
+  { time: 1, cls: 'high' },
+  { time: 1.25, cls: 'low' },
+  { time: 1.5, cls: 'high' },
+  { time: 1.75, cls: 'high' },
 ];
