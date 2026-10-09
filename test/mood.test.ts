@@ -44,9 +44,9 @@ test('a mood entry takes effect at the lookahead bar and not before', () => {
     ],
   );
   assert.equal(activeAt(log, 7, rules).mood, undefined);
-  assert.equal(activeAt(log, 7, rules).tempo, 105);
+  assert.equal(activeAt(log, 7, rules).tempo, 120);
   assert.equal(activeAt(log, 8, rules).mood!.text, 'detroit techno');
-  assert.equal(activeAt(log, 8, rules).tempo, 111);
+  assert.equal(activeAt(log, 8, rules).tempo, 126);
   // The band plays the mood from that bar: bright presets, not before.
   assert.ok(events(7).every((e) => e.tone === undefined));
   assert.ok(events(8).some((e) => e.tone === 'bright'));
@@ -74,10 +74,10 @@ test('the two reference moods produce measurably different output', () => {
   const detroit = [8, 9, 10, 11, 12, 13, 14, 15];
   const country = [16, 17, 18, 19, 20];
   // Tempo: the detroit nudge is +6, the country nudge -14.
-  for (const bar of detroit) assert.equal(activeAt(log, bar, rules).tempo, 111);
-  assert.equal(activeAt(log, 16, rules).tempo, 91);
-  // Scale: detroit stays in G# minor; country plays G# mixolydian, with notes
-  // (B# and E#) that G# minor does not have.
+  for (const bar of detroit) assert.equal(activeAt(log, bar, rules).tempo, 126);
+  assert.equal(activeAt(log, 16, rules).tempo, 106);
+  // Scale: detroit stays in G minor; country plays G mixolydian, with notes
+  // (B and E) that G minor does not have.
   const key = interpretTune(THEME).key;
   const minor = scale(key);
   const mixolydian = scale({ ...key, mode: 'mixolydian' });
@@ -140,13 +140,13 @@ test('an unknown phrase falls back as stated', () => {
   assert.equal(readMood('constructor').style, undefined);
   const inherited = perform([...CLIP_SINGS, { at: 3, mood: 'detroit techno' }, { at: 6, mood: 'constructor' }], 9);
   assert.deepEqual(activeAt(inherited.log, 8, inherited.rules).style, REFERENCE['detroit techno']);
-  assert.equal(activeAt(inherited.log, 8, inherited.rules).tempo, 111);
+  assert.equal(activeAt(inherited.log, 8, inherited.rules).tempo, 126);
   assert.ok(Number.isFinite(barStart(inherited.log, 9, inherited.rules)));
   const kept = perform([...CLIP_SINGS, { at: 3, mood: 'detroit techno' }, { at: 6, mood: 'polka' }], 9);
   const at8 = activeAt(kept.log, 8, kept.rules);
   assert.equal(at8.mood!.text, 'polka');
   assert.deepEqual(at8.style, REFERENCE['detroit techno']);
-  assert.equal(at8.tempo, 111);
+  assert.equal(at8.tempo, 126);
   const stage = stageAt(kept.log, barStart(kept.log, 7, kept.rules) + 0.1, kept.rules);
   assert.deepEqual(stage.captions.at(-1), { by: 'the room says', text: 'polka (not understood; the style stays as it was)' });
   // With no mood at all, the style is neutral.
@@ -157,6 +157,6 @@ test('the captions show the room\'s mood from its effect bar', () => {
   const caption = (bar: number) => stageAt(log, barStart(log, bar, rules) + 0.1, rules);
   assert.ok(!caption(7).captions.some((c) => c.by === 'the room says'));
   assert.deepEqual(caption(8).captions.find((c) => c.by === 'the room says'), { by: 'the room says', text: 'detroit techno' });
-  assert.equal(caption(16).key, 'G# mixolydian');
+  assert.equal(caption(16).key, 'G mixolydian');
   assert.equal(caption(16).mood, 'lonesome country');
 });

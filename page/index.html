@@ -9,6 +9,7 @@
   body { margin: 0 auto; max-width: 820px; padding: 16px; background: #fff; color: #222; font: 16px/1.4 system-ui, sans-serif; }
   svg { width: 100%; height: auto; display: block; }
   .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  select { font: inherit; padding: 8px; border: 2px solid #222; border-radius: 8px; }
   button { font: inherit; padding: 8px 16px; border: 2px solid #222; background: #fff; border-radius: 8px; cursor: pointer; }
   button:active { background: #eee; }
   #mood { margin: 0; }
@@ -98,15 +99,17 @@
 </svg>
 
 <div class="controls">
-  <button id="sing" type="button">sing</button>
-  <button id="sing-rhythm" type="button">sing a rhythm</button>
+  <label for="tune">Original phrase</label>
+  <select id="tune"><option value="synthetic-c">Original C phrase</option><option value="synthetic-eb">Original E-flat phrase</option></select>
+  <button id="sing" type="button">play phrase</button>
+  <button id="sing-rhythm" type="button">play rhythm</button>
   <form id="mood" class="controls">
     <input id="mood-text" type="text" maxlength="40" placeholder="a mood, such as detroit techno" aria-label="a mood for the band">
     <button type="submit">say it</button>
   </form>
   <span id="bar">bar 0</span>
 </div>
-<p id="status">Press "sing" to hum the theme to the synth. No microphone is used.</p>
+<p id="status">Choose an original phrase and press "play phrase". Both phrases and the rhythm are application-owned symbolic fixtures. No microphone or model is used.</p>
 <p id="pending"></p>
 <div id="captions" aria-live="polite"></div>
 

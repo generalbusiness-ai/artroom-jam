@@ -20,13 +20,13 @@ const types: Record<string, string> = {
 };
 
 const server = createServer(async (req, res) => {
-  const url = new URL(req.url ?? '/', 'http://localhost');
-  if (url.pathname === '/') {
-    res.writeHead(302, { location: '/page/' });
-    res.end();
-    return;
-  }
   try {
+    const url = new URL(req.url ?? '/', 'http://localhost');
+    if (url.pathname === '/') {
+      res.writeHead(302, { location: '/page/' });
+      res.end();
+      return;
+    }
     let path = normalize(join(root, decodeURIComponent(url.pathname)));
     if (path !== root && !path.startsWith(root + sep)) {
       res.writeHead(403);
@@ -39,8 +39,8 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
     res.end(body);
   } catch (error) {
-    res.writeHead(error instanceof URIError ? 400 : 404);
-    res.end(error instanceof URIError ? 'bad request' : 'not found');
+    res.writeHead(error instanceof URIError || error instanceof TypeError ? 400 : 404);
+    res.end(error instanceof URIError || error instanceof TypeError ? 'bad request' : 'not found');
   }
 });
 server.listen(port, '127.0.0.1', () => {

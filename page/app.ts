@@ -3,11 +3,12 @@
 // scheduled as a buffer at the bar's start.
 
 import type { Phrase } from '../src/band.ts';
-import { RHYTHM, THEME } from '../src/phrases.ts';
+import { ORIGINAL_TUNES, RHYTHM } from '../src/phrases.ts';
 import type { Part } from '../src/record.ts';
 import { renderBar } from '../src/render.ts';
 import { advance, createLive, moodNow, singNow, type Live } from './live.ts';
 import { stageAt } from './view.ts';
+import { captionUpdater } from './captions.ts';
 
 // How far ahead of a bar its sound is rendered and scheduled, in seconds.
 const AHEAD = 0.5;
@@ -59,7 +60,7 @@ function press(phrase: Phrase): void {
   if (!audio) start();
   void audio!.resume();
   const bar = singNow(live!, now(), phrase);
-  $('#status').textContent = `You ${phrase.kind === 'tune' ? 'hummed the tune' : 'sang the rhythm'}. It takes effect at bar ${bar}.`;
+  $('#status').textContent = `You ${phrase.kind === 'tune' ? 'played the selected original phrase' : 'played the original onset pattern'}. It takes effect at bar ${bar}.`;
 }
 
 function sayMood(event: Event): void {
@@ -75,6 +76,15 @@ function sayMood(event: Event): void {
 }
 
 const PARTS: Part[] = ['synth', 'percussion', 'lead'];
+const updateCaptions = captionUpdater((captions) => {
+  $('#captions').replaceChildren(...captions.map((caption) => {
+    const p = document.createElement('p');
+    const who = document.createElement('b');
+    who.textContent = `${caption.by}: `;
+    p.append(who, caption.text);
+    return p;
+  }));
+});
 
 function draw(): void {
   if (!live) return;
@@ -86,21 +96,17 @@ function draw(): void {
     const head = $<SVGGElement>(`#${part}-player .head`);
     head.setAttribute('transform', `translate(0 ${(stage.arrived[part] ? stage.nod : 0) * 8})`);
   }
-  const captions = $('#captions');
-  captions.replaceChildren(
-    ...stage.captions.map((c) => {
-      const p = document.createElement('p');
-      const who = document.createElement('b');
-      who.textContent = `${c.by}: `;
-      p.append(who, c.text);
-      return p;
-    }),
-  );
+  updateCaptions(stage.captions);
   const waiting = stage.pending.map((p) => `${p.kind} from bar ${p.effectBar}`).join(', ');
   $('#pending').textContent = waiting ? `waiting: ${waiting}` : '';
   requestAnimationFrame(draw);
 }
 
-$('#sing').addEventListener('click', () => press({ kind: 'tune', notes: THEME }));
+$('#sing').addEventListener('click', () => {
+  const chosen = ORIGINAL_TUNES.find((tune) => tune.id === $<HTMLSelectElement>('#tune').value);
+  if (!chosen) return;
+  press({ kind: 'tune', notes: chosen.notes });
+  $('#status').textContent += ` ${chosen.label}; application-owned symbolic notes.`;
+});
 $('#sing-rhythm').addEventListener('click', () => press({ kind: 'rhythm', onsets: RHYTHM }));
 $('#mood').addEventListener('submit', sayMood);

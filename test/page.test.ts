@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { request } from 'node:http';
 import { once } from 'node:events';
 import { createInterface } from 'node:readline';
 import { advance, createLive, singNow } from '../page/live.ts';
@@ -49,23 +50,23 @@ test('a button press takes effect at its effect bar, and the stage shows it wait
     30,
   );
   const { log, rules } = live.band;
-  // At 105 beats per minute bar 9 starts at 20.29 s, so 20 s is late in
-  // bar 8, and one bar of lookahead later is in bar 9: the rhythm takes
-  // effect at bar 10.
-  assert.deepEqual(effects, [1, 10]);
+  // At 120 beats per minute each bar lasts two seconds; at 20 seconds,
+  // bar 10 starts. The sampled 25 ms clock passes that boundary,
+  // so one bar of lookahead puts the rhythm at bar 12.
+  assert.deepEqual(effects, [1, 12]);
   const sing = schedule(log, rules).entries.find((s) => s.entry.type === 'sing' && s.entry.kind === 'rhythm')!;
-  assert.equal(sing.effectBar, 10);
-  assert.deepEqual(stageAt(log, 21, rules).pending, [{ kind: 'rhythm', effectBar: 10 }]);
-  assert.equal(stageAt(log, 21, rules).tempo, 105);
-  const atTen = barStart(log, 10, rules);
-  assert.deepEqual(stageAt(log, atTen + 0.01, rules).pending, []);
-  assert.equal(stageAt(log, atTen + 0.01, rules).tempo, 119);
+  assert.equal(sing.effectBar, 12);
+  assert.deepEqual(stageAt(log, 21, rules).pending, [{ kind: 'rhythm', effectBar: 12 }]);
+  assert.equal(stageAt(log, 21, rules).tempo, 120);
+  const atTwelve = barStart(log, 12, rules);
+  assert.deepEqual(stageAt(log, atTwelve + 0.01, rules).pending, []);
+  assert.equal(stageAt(log, atTwelve + 0.01, rules).tempo, 120);
 });
 
 test('figures appear when their part is taken and nod on the beat', () => {
   const { live } = run([{ at: 0, kind: 'tune' }], 50);
   const { log, rules } = live.band;
-  const at = (bar: number, beats = 0.01) => stageAt(log, barStart(log, bar, rules) + (beats * 60) / 105, rules);
+  const at = (bar: number, beats = 0.01) => stageAt(log, barStart(log, bar, rules) + (beats * 60) / 120, rules);
   assert.deepEqual(at(0).arrived, { synth: false, percussion: false, lead: false, bass: false });
   assert.equal(at(1).arrived.synth, true);
   assert.equal(at(8).arrived.percussion, false);
@@ -101,6 +102,15 @@ test('the local preview refuses malformed URI escapes and still serves the page'
       .then(async (response) => [response.status, await response.text()])
       .catch(() => [0, 'connection lost']); // An original crashing handler fails the boundary assertion.
     assert.deepEqual(refused, [400, 'bad request']);
+    // Send an invalid absolute-form target that URL construction itself
+    // rejects; fetch would normalize it before reaching the handler.
+    const invalidUrl = await new Promise<[number, string]>((resolve) => {
+      const sent = request({ hostname: url.hostname, port: url.port, path: 'http://[', method: 'GET' }, response => {
+        let body = ''; response.setEncoding('utf8'); response.on('data', chunk => { body += chunk; }); response.on('end', () => resolve([response.statusCode ?? 0, body]));
+      });
+      sent.on('error', () => resolve([0, 'connection lost'])); sent.end();
+    });
+    assert.deepEqual(invalidUrl, [400, 'bad request']);
     const page = await fetch(url);
     assert.equal(page.status, 200);
     assert.ok((await page.text()).includes('<title>Jam room</title>'));

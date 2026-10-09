@@ -1,5 +1,5 @@
-// The plan for the J2 clip: the theme sung at the start, the rhythm phrase
-// sung half way through bar 17, and the band left to play.
+// The original symbolic demo plan: first phrase at the start, then the
+// original rhythm midway through bar 17. The second phrase is selectable live.
 
 import { createBand, mood, sing, tick, type Band, type BandOptions, type Phrase } from './band.ts';
 import { RHYTHM, THEME } from './phrases.ts';
