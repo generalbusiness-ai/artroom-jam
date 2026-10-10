@@ -425,8 +425,19 @@
                   "required": true
                 },
                 "voice": {
-                  "type": "text",
-                  "max": 64,
+                  "type": "enum",
+                  "of": [
+                    "hum",
+                    "bass",
+                    "stab",
+                    "arp",
+                    "lead",
+                    "kick",
+                    "hat",
+                    "openhat",
+                    "clap",
+                    "tom"
+                  ],
                   "required": true
                 },
                 "filterUnits": {
@@ -1431,8 +1442,19 @@
                 "required": true
               },
               "voice": {
-                "type": "text",
-                "max": 64,
+                "type": "enum",
+                "of": [
+                  "hum",
+                  "bass",
+                  "stab",
+                  "arp",
+                  "lead",
+                  "kick",
+                  "hat",
+                  "openhat",
+                  "clap",
+                  "tom"
+                ],
                 "required": true
               },
               "filterUnits": {
