@@ -3,6 +3,7 @@ import {parseStrict,unb64url,canonicalize,canonicalBytes,digestBytes,isScopeRef,
 import {httpTransport,signedReads,ScopeHandle,secretSigner,signedIntent,signedReader,TransportError,type Signer} from '@generalbusiness/artroom-client';
 import declaration from '../definitions/jam-native-v2.json';
 import {nativeHistory,reconcileOriginal,type NativeRoom,type PendingIntent} from '../src/native.ts';
+import {nativeRevisions} from '../src/native-revisions.ts';
 import {BrowserCustody} from '../src/browser-custody.ts';
 import {nativeBar,type NativeHistory} from '../src/native-audio.ts';
 import {encodeContribution,validateInterpretation} from '../src/contributions-v2.ts';
@@ -46,7 +47,7 @@ async function submit(kind:string,fields:Record<string,FieldValue>,on:number|nul
   }
   await refresh(c);current(c);const summary=await c.room.handle.summary();current(c);
   if(!summary.ok||canonicalize(summary.value.scope)!==canonicalize(c.room.ref)||summary.value.status!=='active'||summary.value.definition!==c.room.pin)throw new Error('Current native state unavailable');
-  const expected:Record<string,number>={};for(const item of summary.value.items)if(item.type==='configuration'||item.id===on||item.id===fields['instrument'])expected[String(item.id)]=item.revision;
+  const expected=nativeRevisions(c.room.declaration,kind,on,fields,summary.value);
   const grants=parseStrict($<HTMLTextAreaElement>('grants').value);if(!Array.isArray(grants)||grants.length>32||!grants.every(isGrant))throw new Error('Native grants required');
   current(c);permit();const signed=await signedIntent(c.signer,{to:c.room.ref,kind,on,expected,fields});current(c);
   const pending:PendingIntent={signed,grants,beside:{}};await c.custody.save(pending);current(c);permit();
