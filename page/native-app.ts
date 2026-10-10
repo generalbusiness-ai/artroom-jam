@@ -27,20 +27,23 @@ async function refresh(c=connected()) {
 }
 async function connect() {
  generation++;connection=undefined;history=undefined;agentRunning=false;if(agentTimer)clearTimeout(agentTimer);lastAgentTrigger='';stopCapture();if(timer)clearTimeout(timer);
- const own=generation,response=await fetch('/jam-config');if(!response.ok)throw new Error('Real native room not configured');
- const config=await response.json() as {ref:ScopeRef;pin:Digest};
+ const own=generation;
+ const metadata=async(path:string)=>{const url=new URL(path,location.origin).href;if(own!==generation)throw new Error('Connection changed');const response=await fetch(url,{redirect:'error'});if(own!==generation||response.redirected||response.url!==url){try{void response.body?.getReader().cancel().catch(()=>undefined);}catch{}throw new Error('Wrong captured metadata route or connection');}return response;};
+ const response=await metadata('/jam-config');if(!response.ok||!response.body)throw new Error('Real native room not configured');
+ const configBytes=await within(30,signal=>takeBytes(response.body!,16384,signal));if(own!==generation||configBytes===LATE||configBytes===null)throw new Error('Public room configuration unavailable');
+ const config=parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(configBytes)) as {ref:ScopeRef;pin:Digest};
  if(!isScopeRef(config.ref)||!isDigest(config.pin)||Object.keys(config).sort().join(',')!=='pin,ref')throw new Error('Invalid public room configuration');
  const signer=secretSigner(unb64url($<HTMLInputElement>('secret').value));$<HTMLInputElement>('secret').value='';
  const session=$<HTMLInputElement>('session').value;$<HTMLInputElement>('session').value='';if(!session)throw new Error('Repository read session required for complete multi-actor history');
  const transport=signedReads(httpTransport(location.origin,{fetch:async(url,init)=>{const response=await fetch(url,{...init,redirect:'error'});if(response.redirected||response.url!==url)throw new TransportError('Wrong native response route');return response;}}),signer);
- const replayResponse=await fetch('/jam-replay-config');
+ const replayResponse=await metadata('/jam-replay-config');
  if(!replayResponse.ok&&replayResponse.status!==503)throw new Error(replayResponse.status===422?'Unsupported native replay code configuration':'Actual native replay configuration unavailable');
- let replayConfig=null;
- if(replayResponse.ok){if(!replayResponse.body)throw new Error('Public replay configuration unavailable');const raw=await within(30,signal=>takeBytes(replayResponse.body!,16384,signal));if(raw===LATE||raw===null)throw new Error('Public replay configuration exceeds bounds');replayConfig=capturedReplayConfig(parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(raw)));}
+ let replayConfig=null,nativeOrigin:string|undefined;
+ if(replayResponse.ok){if(!replayResponse.body)throw new Error('Public replay configuration unavailable');const raw=await within(30,signal=>takeBytes(replayResponse.body!,16384,signal));if(raw===LATE||raw===null)throw new Error('Public replay configuration exceeds bounds');if(own!==generation)throw new Error('Connection changed');const served=parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(raw));if(!served||typeof served!=='object'||Array.isArray(served)||Object.keys(served).sort().join(',')!=='config,nativeOrigin,proxyOrigin'||served['proxyOrigin']!==location.origin||typeof served['nativeOrigin']!=='string')throw new Error('Replay metadata route binding unavailable');replayConfig=capturedReplayConfig(served['config']);nativeOrigin=served['nativeOrigin'];if(replayConfig&&replayConfig.deployment.origin!==nativeOrigin)throw new Error('Replay metadata native origin differs');}
  if(replayResponse.ok&&!replayConfig)throw new Error('Unsupported public replay configuration');
  const c:Connection={generation:own,signer,custody:new BrowserCustody(`${config.ref.scope}:${config.ref.inc}:${signer.key}`),room:{ref:config.ref,pin:config.pin,declaration:declaration as DeclaredDefinition,handle:new ScopeHandle(transport,config.ref.scope,session),creator:ref=>new ScopeHandle(transport,ref.scope,session)}};
  if(own!==generation)throw new Error('Connection changed');connection=c;
- if(replayConfig)c.room.replay=publicNativeReplay(replayConfig,location.origin,()=>session,async(url,init)=>{current(c);const response=await fetch(url,{...init,redirect:'error'});if(response.redirected||response.url!==url){try{void response.body?.getReader().cancel().catch(()=>undefined);}catch{}throw new TransportError('Wrong replay response route');}return response;},()=>current(c));nextBar=1;await refresh(c);
+ if(replayConfig&&nativeOrigin)c.room.replay=publicNativeReplay(replayConfig,{proxyOrigin:location.origin,nativeOrigin},()=>session,async(url,init)=>{current(c);const response=await fetch(url,{...init,redirect:'error'});if(response.redirected||response.url!==url){try{void response.body?.getReader().cancel().catch(()=>undefined);}catch{}throw new TransportError('Wrong replay response route');}return response;},()=>current(c));nextBar=1;await refresh(c);
  const poll=async()=>{if(connection!==c)return;try{await refresh(c);}catch(error){if(connection===c)tell(error instanceof Error?error.message:'Native history unavailable');}if(connection===c)timer=setTimeout(poll,1500);};timer=setTimeout(poll,1500);
 }
 /** Save before dispatch; all awaits keep the same captured actor, scope and private store. */

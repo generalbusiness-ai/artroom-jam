@@ -44,13 +44,13 @@ export function capturedReplayConfig(value:unknown):NativeReplayConfig|null {
  try{const origin=new URL(value['deployment']['origin']);if(origin.origin!==value['deployment']['origin']||origin.protocol!=='https:'||origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash)return null;}catch{return null;}
  return parseStrictBytes(canonicalBytes(value)) as unknown as NativeReplayConfig;
 }
-export function publicNativeReplay(config:NativeReplayConfig,service:string,reader:ReaderFor,fetch:Fetch,current:()=>void):NativeReplay {
+export function publicNativeReplay(config:NativeReplayConfig,route:{proxyOrigin:string;nativeOrigin:string},reader:ReaderFor,fetch:Fetch,current:()=>void):NativeReplay {
  // Detach actual code parameters at construction; no mutable configuration borrowing.
- const held=capturedReplayConfig(config),origin=new URL(service);
+ const held=capturedReplayConfig(config),service=route.proxyOrigin,nativeOrigin=route.nativeOrigin,origin=new URL(service);
  if(origin.origin!==service||origin.pathname!=='/'||origin.search||origin.hash||origin.username||origin.password||!['https:','http:'].includes(origin.protocol))throw new Error('One exact trusted replay origin required');
  return async(scope,head)=>{
   current();
-  if(!held)return{status:'unsupported-code',usable:false,why:'This app does not support the configured capability/owner parameters or bounds shape.'};
+  if(!held||held.deployment.origin!==nativeOrigin)return{status:'unsupported-code',usable:false,why:'This app does not support the configured capability/owner parameters or bounds shape.'};
   if(held.platformDefinitions.some(named=>platform(named)===null))return{status:'unsupported-code',usable:false,why:'The genuine public platform catalog lacks an explicitly configured version.'};
   const coded=capabilitiesOf(holdCapability(held.hold),gitRead());
   const source=httpSource(service,{reader:async(...args)=>{current();return await reader(...args);},fetch:async(...args)=>{current();const answer=await fetch(...args);try{current();}catch(error){try{void answer.body?.getReader().cancel().catch(()=>undefined);}catch{}throw error;}return answer;}});

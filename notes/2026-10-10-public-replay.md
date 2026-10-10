@@ -11,7 +11,7 @@ tokens-per-hold2 and null root retention. These capability parameters are the
 supported F1 candidate, not a claim about the actual deployment. No PROPOSED_BOUNDS,
 NEWEST or implicit cohort is selected. Absent config stays not-configured;
 unknown public catalog/config stays unsupported-code. New public JAM_REPLAY_CONFIG
-contains only deployment/code/bounds metadata; read credentials remain separately in memory. The Worker checks its configured fixed native origin against this handoff. The version/source commit are operator-supplied correspondence, not a new service attestation; actual deployed metadata still must establish them.
+contains only deployment/code/bounds metadata; read credentials remain separately in memory. The Worker checks its configured fixed native origin against this handoff and returns the public proxy/native origin pair. The browser rejects redirects or another response URL before reading either metadata reply, fences the captured connection, and passes that same pair to the replay adapter. The version/source commit are operator-supplied correspondence, not a new service attestation; actual deployed metadata still must establish them.
 
 The private per-scope ReaderFor and fixed trusted origin feed public httpSource.
 The browser's current repository session is its available reader. If it cannot
@@ -29,14 +29,14 @@ No outside outcome, clock or mint/dispatch trust is relabeled as proof.
 
 Native history produces no mapped musical cues or schedule unless the actual
 report is consistent for the exact full target and covers0..selectedhead without
-missing/anchored dependencies. The audio renderer checks that condition again;
+missing/anchored dependencies, as-recorded authority/head/anchor trust or integrity-only trusts. Public TRUSTS constants name these checks; no local label substitutes for them. The audio renderer checks that condition again;
 model selection and autonomous musicians refuse absent cues. Unknown original
 native/provider requests retain their existing custody; replay performs reads only.
 Original tunes/rhythm, codecs, rational transport and existing declarations remain.
 
 All new public SDK types/runtime, declaration validation, replay/browser build and
 real native/foreign-source withholding/current-history/prefix/audio acceptance are
-UNRUN. A pure report predicate witness is authored but unrun; it creates no native
+UNRUN. A report predicate witness is authored but unrun and requires the genuine public replay package for its TRUSTS constants; it creates no native
 admission or report proof. Runtime waits genuine public six-package publication,
 actual deployment/code/pin/read handoff and Root's serialized check slot. No package
 version, native pin, URL correspondence or public availability is invented here.
