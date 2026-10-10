@@ -52,3 +52,35 @@ Native attachment depends on the initial/F1 delivery `60e59173a14827d5017d89e217
 Ordinary Jam source review/publication waits for Artroom hosting under this repository's instructions. Native lost-reply/reload/session/device custody, complete musical acts, real human hum, model-backed agents, actual local sound, listening and Hugh's worth-hearing judgment remain open. The original 40-second clip's symbolic checks cannot satisfy them. No README status, old design snapshot, whole M1/UX completion or cleared backlog becomes a new blanket first-task gate.
 
 No dependency, lockfile, original fixture, existing history, player, audio code or page changed. No tests, project imports, compiler, generation/build, native execution, audio/browser/provider calls, install, public package publication or review approval occurred during this source preparation.
+
+## Own-module check passed
+
+The execution statements above describe the original source preparation.
+Under Artroom request `715c3fdce1f5570b8877e1be8124b0b77c9fdf61`, the
+complete existing contribution case ran once at clean Jam commit
+`a89bcf4686abe0306ffd4344a8553d53bc1d0b11`, tree
+`4c53ae2ddbf5693106f449cbd7ded1d25804e67a`. It passed with no failed,
+skipped, cancelled or todo cases. All 82 tracked source and fixture hashes,
+the pinned Node binary and the clean source state remained unchanged.
+
+The guarded invocation used 0.43 seconds of wall time and 0.34 seconds of
+CPU time; the case command used 0.18 and 0.20 seconds respectively, on
+macOS 27.0.1 arm64 with starting load averages 3.20/3.13/3.08. Complete
+logs and proof remain at `/tmp/artroom-jam-a89-pure-result` and
+`/tmp/artroom-jam-a89-pure-complete-proof.json` (SHA256
+`35c9a71fd10c7ffac16509a39c42e17cc4e853453369caa83ee984be26bbf358`).
+
+This check imports only Jam's own contribution, interpretation, music,
+phrase and scheduling modules, plus Node's built-in test tools. It needs
+no public Artroom SDK or dependency installation. The public-release hold
+applies to native and public integration, not this local symbolic check.
+The case's full-shaped references are still made-up fixtures: a pass does
+not establish native admission, provenance, grants, audible output,
+model-backed interpretation, listening acceptance or hosting. No compiler,
+discovery, control, whole suite, audio, browser, provider or platform gate
+ran. The original source and fixtures were not rewritten.
+
+This amendment changes only the note; no check is repeated for it.
+Ordinary Jam review and landing still wait for Artroom hosting under this
+repository's instructions. The complete native, public and musical
+acceptance remains owed.
