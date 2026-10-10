@@ -1,0 +1,11 @@
+{
+  "name": "artroom-jam",
+  "main": "src/web-worker.ts",
+  "compatibility_date": "2026-08-15",
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+  "ai": { "binding": "AI" },
+  "durable_objects": {"bindings": [{"name": "MUSICIAN", "class_name": "Musician"}]},
+  "migrations": [{"tag": "jam-native-v2", "new_sqlite_classes": ["Musician"]}]
+  // Operator supplies ARTROOM_ORIGIN, JAM_CONFIG and adopted JAM_MODEL.
+  // No account, room identity, grant or deployment result is invented here.
+}

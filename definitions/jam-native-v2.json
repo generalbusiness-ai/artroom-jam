@@ -1,0 +1,2065 @@
+{
+  "format": "artroom-definition-1",
+  "name": "jam-native-v2",
+  "profile": {
+    "name": "restricted",
+    "version": 1
+  },
+  "capabilities": [],
+  "genesis": "establish",
+  "items": {
+    "configuration": {
+      "many": false,
+      "max": 1,
+      "initial": "ready",
+      "states": {
+        "ready": {
+          "final": false
+        }
+      },
+      "parties": {
+        "controller": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        },
+        "interpreter": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": false
+        }
+      },
+      "refs": {
+        "interpretation": {
+          "fixed": false,
+          "required": false,
+          "to": {
+            "type": "fact",
+            "under": "jam-native-v2",
+            "kind": [
+              "interpret"
+            ]
+          }
+        }
+      },
+      "values": {
+        "lookaheadMs": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "int",
+            "min": 1,
+            "max": 60000
+          }
+        },
+        "started": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "bool"
+          },
+          "default": false
+        },
+        "key": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "record",
+            "of": {
+              "tonic": {
+                "type": "int",
+                "min": 0,
+                "max": 11,
+                "required": true
+              },
+              "mode": {
+                "type": "enum",
+                "of": [
+                  "major",
+                  "minor",
+                  "mixolydian",
+                  "pentatonic",
+                  "blues"
+                ],
+                "required": true
+              }
+            }
+          },
+          "default": {
+            "tonic": 9,
+            "mode": "minor"
+          }
+        },
+        "theme": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "list",
+            "max": 64,
+            "of": {
+              "type": "record",
+              "of": {
+                "step": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 255,
+                  "required": true
+                },
+                "length": {
+                  "type": "int",
+                  "min": 1,
+                  "max": 256,
+                  "required": true
+                },
+                "pitch": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                },
+                "velocity": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                }
+              }
+            }
+          },
+          "default": []
+        },
+        "themeBars": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "int",
+            "min": 1,
+            "max": 16
+          },
+          "default": 1
+        },
+        "part0": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "synth",
+              "percussion",
+              "lead",
+              "bass"
+            ]
+          },
+          "default": "synth"
+        },
+        "part1": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "synth",
+              "percussion",
+              "lead",
+              "bass"
+            ]
+          },
+          "default": "percussion"
+        },
+        "part2": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "synth",
+              "percussion",
+              "lead",
+              "bass"
+            ]
+          },
+          "default": "lead"
+        },
+        "part3": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "synth",
+              "percussion",
+              "lead",
+              "bass"
+            ]
+          },
+          "default": "bass"
+        },
+        "soloMaxBars": {
+          "fixed": false,
+          "required": true,
+          "of": {
+            "type": "int",
+            "min": 1,
+            "max": 16
+          },
+          "default": 8
+        }
+      }
+    },
+    "contribution": {
+      "many": true,
+      "max": 64,
+      "initial": "pending",
+      "states": {
+        "pending": {
+          "final": false
+        },
+        "interpreted": {
+          "final": true
+        }
+      },
+      "parties": {
+        "author": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {
+        "kind": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "tune",
+              "rhythm"
+            ]
+          }
+        },
+        "notes": {
+          "fixed": true,
+          "required": false,
+          "of": {
+            "type": "list",
+            "max": 64,
+            "of": {
+              "type": "record",
+              "of": {
+                "startUs": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 60000000,
+                  "required": true
+                },
+                "durationUs": {
+                  "type": "int",
+                  "min": 1,
+                  "max": 60000000,
+                  "required": true
+                },
+                "pitch": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                },
+                "velocity": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "onsets": {
+          "fixed": true,
+          "required": false,
+          "of": {
+            "type": "list",
+            "max": 64,
+            "of": {
+              "type": "record",
+              "of": {
+                "timeUs": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 60000000,
+                  "required": true
+                },
+                "cls": {
+                  "type": "enum",
+                  "of": [
+                    "high",
+                    "low"
+                  ],
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "audioDigest": {
+          "fixed": true,
+          "required": false,
+          "of": {
+            "type": "digest"
+          }
+        }
+      }
+    },
+    "instrument": {
+      "many": true,
+      "max": 4,
+      "initial": "held",
+      "states": {
+        "held": {
+          "final": false
+        },
+        "released": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {
+        "part": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "enum",
+            "of": [
+              "synth",
+              "percussion",
+              "lead",
+              "bass"
+            ]
+          }
+        }
+      }
+    },
+    "pattern": {
+      "many": true,
+      "max": 64,
+      "initial": "recorded",
+      "states": {
+        "recorded": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {
+        "follows": {
+          "fixed": true,
+          "required": true,
+          "to": {
+            "type": "fact",
+            "under": "jam-native-v2",
+            "kind": [
+              "interpret"
+            ]
+          }
+        }
+      },
+      "values": {
+        "bars": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "int",
+            "min": 1,
+            "max": 16
+          }
+        },
+        "events": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "list",
+            "max": 64,
+            "of": {
+              "type": "record",
+              "of": {
+                "stepUnits": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 256000000,
+                  "required": true
+                },
+                "lengthUnits": {
+                  "type": "int",
+                  "min": 1,
+                  "max": 256000000,
+                  "required": true
+                },
+                "pitch": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                },
+                "velocity": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": true
+                },
+                "voice": {
+                  "type": "text",
+                  "max": 64,
+                  "required": true
+                },
+                "filterUnits": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 1000000,
+                  "required": false
+                },
+                "lateUnits": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 1000000,
+                  "required": false
+                },
+                "tone": {
+                  "type": "text",
+                  "max": 64,
+                  "required": false
+                },
+                "from": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 127,
+                  "required": false
+                },
+                "glideUnits": {
+                  "type": "int",
+                  "min": 0,
+                  "max": 256000000,
+                  "required": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "solo": {
+      "many": true,
+      "max": 1,
+      "initial": "held",
+      "states": {
+        "held": {
+          "final": false
+        },
+        "ended": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {
+        "bars": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "int",
+            "min": 1,
+            "max": 16
+          }
+        },
+        "deadline": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "time"
+          }
+        }
+      }
+    },
+    "mood": {
+      "many": true,
+      "max": 64,
+      "initial": "recorded",
+      "states": {
+        "recorded": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {
+        "text": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "text",
+            "max": 512
+          }
+        }
+      }
+    },
+    "say": {
+      "many": true,
+      "max": 64,
+      "initial": "recorded",
+      "states": {
+        "recorded": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {
+        "text": {
+          "fixed": true,
+          "required": true,
+          "of": {
+            "type": "text",
+            "max": 512
+          }
+        }
+      }
+    },
+    "model-request": {
+      "many": true,
+      "max": 64,
+      "initial": "recorded",
+      "states": {
+        "recorded": {
+          "final": true
+        }
+      },
+      "parties": {
+        "player": {
+          "fixed": true,
+          "required": true,
+          "list": false,
+          "author": true
+        }
+      },
+      "refs": {},
+      "values": {}
+    }
+  },
+  "acts": {
+    "establish": {
+      "step": "open",
+      "on": "configuration",
+      "also": {},
+      "grant": "jam.establish",
+      "fields": {
+        "opener": {
+          "type": "member",
+          "required": true
+        },
+        "interpreter": {
+          "type": "member",
+          "required": true
+        },
+        "lookaheadMs": {
+          "type": "int",
+          "min": 1,
+          "max": 60000,
+          "required": true
+        }
+      },
+      "guards": [],
+      "effects": [
+        {
+          "party": {
+            "slot": "controller",
+            "from": {
+              "field": "opener"
+            }
+          }
+        },
+        {
+          "party": {
+            "slot": "interpreter",
+            "from": {
+              "field": "interpreter"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "lookaheadMs",
+            "from": {
+              "field": "lookaheadMs"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "sing": {
+      "step": "open",
+      "on": "contribution",
+      "also": {},
+      "grant": "jam.sing",
+      "fields": {
+        "version": {
+          "type": "int",
+          "min": 2,
+          "max": 2,
+          "required": true
+        },
+        "kind": {
+          "type": "enum",
+          "of": [
+            "tune",
+            "rhythm"
+          ],
+          "required": true
+        },
+        "notes": {
+          "type": "list",
+          "max": 64,
+          "required": false,
+          "of": {
+            "type": "record",
+            "of": {
+              "startUs": {
+                "type": "int",
+                "min": 0,
+                "max": 60000000,
+                "required": true
+              },
+              "durationUs": {
+                "type": "int",
+                "min": 1,
+                "max": 60000000,
+                "required": true
+              },
+              "pitch": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              },
+              "velocity": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              }
+            }
+          }
+        },
+        "onsets": {
+          "type": "list",
+          "max": 64,
+          "required": false,
+          "of": {
+            "type": "record",
+            "of": {
+              "timeUs": {
+                "type": "int",
+                "min": 0,
+                "max": 60000000,
+                "required": true
+              },
+              "cls": {
+                "type": "enum",
+                "of": [
+                  "high",
+                  "low"
+                ],
+                "required": true
+              }
+            }
+          }
+        },
+        "audioDigest": {
+          "type": "digest",
+          "required": false
+        }
+      },
+      "guards": [
+        {
+          "rule": "contribution-form",
+          "reason": "bad-contribution"
+        }
+      ],
+      "effects": [
+        {
+          "party": {
+            "slot": "author",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "kind",
+            "from": {
+              "field": "kind"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "notes",
+            "from": {
+              "field": "notes"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "onsets",
+            "from": {
+              "field": "onsets"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "audioDigest",
+            "from": {
+              "field": "audioDigest"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "interpret": {
+      "step": "transition",
+      "on": "contribution",
+      "also": {
+        "configuration": {
+          "item": "configuration",
+          "one": true
+        }
+      },
+      "grant": "jam.interpret",
+      "fields": {
+        "kind": {
+          "type": "enum",
+          "of": [
+            "tune",
+            "rhythm"
+          ],
+          "required": true
+        },
+        "tempoMilliBpm": {
+          "type": "int",
+          "min": 60000,
+          "max": 180000,
+          "required": true
+        },
+        "tempoClear": {
+          "type": "bool",
+          "required": true
+        },
+        "key": {
+          "type": "record",
+          "required": true,
+          "of": {
+            "tonic": {
+              "type": "int",
+              "min": 0,
+              "max": 11,
+              "required": true
+            },
+            "mode": {
+              "type": "enum",
+              "of": [
+                "major",
+                "minor",
+                "mixolydian",
+                "pentatonic",
+                "blues"
+              ],
+              "required": true
+            }
+          }
+        },
+        "theme": {
+          "type": "list",
+          "max": 64,
+          "required": true,
+          "of": {
+            "type": "record",
+            "of": {
+              "step": {
+                "type": "int",
+                "min": 0,
+                "max": 255,
+                "required": true
+              },
+              "length": {
+                "type": "int",
+                "min": 1,
+                "max": 256,
+                "required": true
+              },
+              "pitch": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              },
+              "velocity": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              }
+            }
+          }
+        },
+        "themeBars": {
+          "type": "int",
+          "min": 1,
+          "max": 16,
+          "required": true
+        },
+        "rhythm": {
+          "type": "list",
+          "max": 64,
+          "required": true,
+          "of": {
+            "type": "record",
+            "of": {
+              "step": {
+                "type": "int",
+                "min": 0,
+                "max": 255,
+                "required": true
+              },
+              "cls": {
+                "type": "enum",
+                "of": [
+                  "high",
+                  "low"
+                ],
+                "required": true
+              }
+            }
+          }
+        },
+        "rhythmBars": {
+          "type": "int",
+          "min": 0,
+          "max": 16,
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "state": [
+            "pending"
+          ],
+          "reason": "already-interpreted"
+        },
+        {
+          "of": "also.configuration",
+          "signer": [
+            "interpreter"
+          ],
+          "reason": "not-interpreter"
+        },
+        {
+          "equals": {
+            "a": {
+              "field": "kind"
+            },
+            "b": {
+              "slot": "kind"
+            }
+          },
+          "reason": "wrong-contribution-kind"
+        },
+        {
+          "rule": "interpretation-form",
+          "reason": "bad-interpretation"
+        },
+        {
+          "anyOf": [
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "kind"
+                  },
+                  "b": {
+                    "const": "tune"
+                  }
+                }
+              }
+            ],
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "key"
+                  },
+                  "b": {
+                    "slot": "key",
+                    "of": "also.configuration"
+                  }
+                }
+              },
+              {
+                "equals": {
+                  "a": {
+                    "field": "theme"
+                  },
+                  "b": {
+                    "slot": "theme",
+                    "of": "also.configuration"
+                  }
+                }
+              },
+              {
+                "equals": {
+                  "a": {
+                    "field": "themeBars"
+                  },
+                  "b": {
+                    "slot": "themeBars",
+                    "of": "also.configuration"
+                  }
+                }
+              }
+            ]
+          ],
+          "reason": "rhythm-changed-tune"
+        }
+      ],
+      "effects": [
+        {
+          "state": "interpreted"
+        },
+        {
+          "value": {
+            "slot": "started",
+            "from": {
+              "const": true
+            }
+          },
+          "of": "also.configuration"
+        },
+        {
+          "value": {
+            "slot": "key",
+            "from": {
+              "field": "key"
+            }
+          },
+          "of": "also.configuration"
+        },
+        {
+          "value": {
+            "slot": "theme",
+            "from": {
+              "field": "theme"
+            }
+          },
+          "of": "also.configuration"
+        },
+        {
+          "value": {
+            "slot": "themeBars",
+            "from": {
+              "field": "themeBars"
+            }
+          },
+          "of": "also.configuration"
+        },
+        {
+          "ref": {
+            "slot": "interpretation",
+            "from": "self"
+          },
+          "of": "also.configuration"
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "set-lookahead": {
+      "step": "transition",
+      "on": "configuration",
+      "also": {},
+      "grant": "jam.rules",
+      "fields": {
+        "lookaheadMs": {
+          "type": "int",
+          "min": 1,
+          "max": 60000,
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "signer": [
+            "controller"
+          ],
+          "reason": "not-controller"
+        },
+        {
+          "equals": {
+            "a": {
+              "slot": "started"
+            },
+            "b": {
+              "const": true
+            }
+          },
+          "reason": "transport-not-started"
+        }
+      ],
+      "effects": [
+        {
+          "value": {
+            "slot": "lookaheadMs",
+            "from": {
+              "field": "lookaheadMs"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "take": {
+      "step": "open",
+      "on": "instrument",
+      "also": {
+        "configuration": {
+          "item": "configuration",
+          "one": true
+        }
+      },
+      "grant": "jam.take",
+      "fields": {
+        "part": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "none": {
+            "type": "instrument",
+            "states": [
+              "held"
+            ],
+            "where": [
+              {
+                "equals": {
+                  "a": {
+                    "slot": "part"
+                  },
+                  "b": {
+                    "field": "part"
+                  }
+                }
+              }
+            ]
+          },
+          "reason": "instrument-taken"
+        },
+        {
+          "none": {
+            "type": "instrument",
+            "states": [
+              "held"
+            ],
+            "where": [
+              {
+                "equals": {
+                  "a": {
+                    "slot": "player"
+                  },
+                  "b": {
+                    "signer": true
+                  }
+                }
+              }
+            ]
+          },
+          "reason": "already-playing"
+        },
+        {
+          "anyOf": [
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "part"
+                  },
+                  "b": {
+                    "slot": "part0",
+                    "of": "also.configuration"
+                  }
+                }
+              }
+            ],
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "part"
+                  },
+                  "b": {
+                    "slot": "part1",
+                    "of": "also.configuration"
+                  }
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part0",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "part"
+                  },
+                  "b": {
+                    "slot": "part2",
+                    "of": "also.configuration"
+                  }
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part0",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part1",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "part"
+                  },
+                  "b": {
+                    "slot": "part3",
+                    "of": "also.configuration"
+                  }
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part0",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part1",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "some": {
+                  "type": "instrument",
+                  "states": [
+                    "held"
+                  ],
+                  "where": [
+                    {
+                      "equals": {
+                        "a": {
+                          "slot": "part"
+                        },
+                        "b": {
+                          "slot": "part2",
+                          "of": "also.configuration"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          ],
+          "reason": "arrival-order"
+        }
+      ],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "part",
+            "from": {
+              "field": "part"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "release": {
+      "step": "transition",
+      "on": "instrument",
+      "also": {},
+      "grant": "jam.release",
+      "fields": {},
+      "guards": [
+        {
+          "state": [
+            "held"
+          ]
+        },
+        {
+          "signer": [
+            "player"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "state": "released"
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "pattern": {
+      "step": "open",
+      "on": "pattern",
+      "also": {
+        "configuration": {
+          "item": "configuration",
+          "one": true
+        },
+        "instrument": {
+          "item": "instrument",
+          "by": "instrument"
+        }
+      },
+      "grant": "jam.pattern",
+      "fields": {
+        "instrument": {
+          "type": "item",
+          "of": "instrument",
+          "required": true
+        },
+        "follows": {
+          "type": "fact",
+          "under": "jam-native-v2",
+          "kind": [
+            "interpret"
+          ],
+          "required": true
+        },
+        "bars": {
+          "type": "int",
+          "min": 1,
+          "max": 16,
+          "required": true
+        },
+        "events": {
+          "type": "list",
+          "max": 64,
+          "of": {
+            "type": "record",
+            "of": {
+              "stepUnits": {
+                "type": "int",
+                "min": 0,
+                "max": 256000000,
+                "required": true
+              },
+              "lengthUnits": {
+                "type": "int",
+                "min": 1,
+                "max": 256000000,
+                "required": true
+              },
+              "pitch": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              },
+              "velocity": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": true
+              },
+              "voice": {
+                "type": "text",
+                "max": 64,
+                "required": true
+              },
+              "filterUnits": {
+                "type": "int",
+                "min": 0,
+                "max": 1000000,
+                "required": false
+              },
+              "lateUnits": {
+                "type": "int",
+                "min": 0,
+                "max": 1000000,
+                "required": false
+              },
+              "tone": {
+                "type": "text",
+                "max": 64,
+                "required": false
+              },
+              "from": {
+                "type": "int",
+                "min": 0,
+                "max": 127,
+                "required": false
+              },
+              "glideUnits": {
+                "type": "int",
+                "min": 0,
+                "max": 256000000,
+                "required": false
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "of": "also.instrument",
+          "state": [
+            "held"
+          ]
+        },
+        {
+          "of": "also.instrument",
+          "signer": [
+            "player"
+          ]
+        },
+        {
+          "fact": {
+            "field": "follows"
+          }
+        },
+        {
+          "equals": {
+            "a": {
+              "field": "follows"
+            },
+            "b": {
+              "slot": "interpretation",
+              "of": "also.configuration"
+            }
+          },
+          "reason": "old-interpretation"
+        },
+        {
+          "rule": "pattern-span",
+          "reason": "pattern-outside-bars"
+        }
+      ],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "bars",
+            "from": {
+              "field": "bars"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "events",
+            "from": {
+              "field": "events"
+            }
+          }
+        },
+        {
+          "ref": {
+            "slot": "follows",
+            "from": {
+              "field": "follows"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "solo": {
+      "step": "open",
+      "on": "solo",
+      "also": {
+        "configuration": {
+          "item": "configuration",
+          "one": true
+        },
+        "instrument": {
+          "item": "instrument",
+          "by": "instrument"
+        }
+      },
+      "grant": "jam.solo",
+      "fields": {
+        "instrument": {
+          "type": "item",
+          "of": "instrument",
+          "required": true
+        },
+        "bars": {
+          "type": "int",
+          "min": 1,
+          "max": 16,
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "of": "also.instrument",
+          "state": [
+            "held"
+          ]
+        },
+        {
+          "of": "also.instrument",
+          "signer": [
+            "player"
+          ]
+        },
+        {
+          "of": "also.instrument",
+          "equals": {
+            "a": {
+              "slot": "part"
+            },
+            "b": {
+              "const": "lead"
+            }
+          }
+        },
+        {
+          "none": {
+            "type": "solo",
+            "states": [
+              "held"
+            ]
+          },
+          "reason": "solo-held"
+        },
+        {
+          "rule": "solo-length",
+          "reason": "solo-too-long"
+        }
+      ],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "bars",
+            "from": {
+              "field": "bars"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "deadline",
+            "from": {
+              "time": {
+                "plusSeconds": 125
+              }
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "end-solo": {
+      "step": "transition",
+      "on": "solo",
+      "also": {},
+      "grant": "jam.solo",
+      "fields": {},
+      "guards": [
+        {
+          "state": [
+            "held"
+          ]
+        },
+        {
+          "signer": [
+            "player"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "state": "ended"
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "mood": {
+      "step": "open",
+      "on": "mood",
+      "also": {},
+      "grant": "jam.mood",
+      "fields": {
+        "text": {
+          "type": "text",
+          "max": 512,
+          "required": true
+        }
+      },
+      "guards": [],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "text",
+            "from": {
+              "field": "text"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "say": {
+      "step": "open",
+      "on": "say",
+      "also": {},
+      "grant": "jam.say",
+      "fields": {
+        "text": {
+          "type": "text",
+          "max": 512,
+          "required": true
+        }
+      },
+      "guards": [],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "text",
+            "from": {
+              "field": "text"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "set-order": {
+      "step": "transition",
+      "on": "configuration",
+      "also": {},
+      "grant": "jam.rules",
+      "fields": {
+        "part0": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        },
+        "part1": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        },
+        "part2": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        },
+        "part3": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "signer": [
+            "controller"
+          ]
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part1"
+            },
+            "b": {
+              "field": "part0"
+            }
+          },
+          "reason": "duplicate-instrument"
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part2"
+            },
+            "b": {
+              "field": "part0"
+            }
+          },
+          "reason": "duplicate-instrument"
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part2"
+            },
+            "b": {
+              "field": "part1"
+            }
+          },
+          "reason": "duplicate-instrument"
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part3"
+            },
+            "b": {
+              "field": "part0"
+            }
+          },
+          "reason": "duplicate-instrument"
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part3"
+            },
+            "b": {
+              "field": "part1"
+            }
+          },
+          "reason": "duplicate-instrument"
+        },
+        {
+          "differs": {
+            "a": {
+              "field": "part3"
+            },
+            "b": {
+              "field": "part2"
+            }
+          },
+          "reason": "duplicate-instrument"
+        }
+      ],
+      "effects": [
+        {
+          "value": {
+            "slot": "part0",
+            "from": {
+              "field": "part0"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "part1",
+            "from": {
+              "field": "part1"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "part2",
+            "from": {
+              "field": "part2"
+            }
+          }
+        },
+        {
+          "value": {
+            "slot": "part3",
+            "from": {
+              "field": "part3"
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    },
+    "musician-request": {
+      "step": "open",
+      "on": "model-request",
+      "also": {
+        "configuration": {
+          "item": "configuration",
+          "one": true
+        },
+        "instrument": {
+          "item": "instrument",
+          "by": "instrument"
+        }
+      },
+      "grant": "jam.musician",
+      "fields": {
+        "kind": {
+          "type": "enum",
+          "of": [
+            "interpret",
+            "pattern"
+          ],
+          "required": true
+        },
+        "instrument": {
+          "type": "item",
+          "of": "instrument",
+          "required": true
+        },
+        "part": {
+          "type": "enum",
+          "of": [
+            "synth",
+            "percussion",
+            "lead",
+            "bass"
+          ],
+          "required": true
+        },
+        "contextDigest": {
+          "type": "digest",
+          "required": true
+        },
+        "head": {
+          "type": "fact",
+          "under": "jam-native-v2",
+          "kind": [
+            "establish",
+            "sing",
+            "interpret",
+            "set-lookahead",
+            "take",
+            "release",
+            "pattern",
+            "solo",
+            "end-solo",
+            "mood",
+            "say",
+            "set-order",
+            "musician-request",
+            "solo-expired"
+          ],
+          "required": true
+        }
+      },
+      "guards": [
+        {
+          "of": "also.instrument",
+          "state": [
+            "held"
+          ]
+        },
+        {
+          "of": "also.instrument",
+          "signer": [
+            "player"
+          ]
+        },
+        {
+          "equals": {
+            "a": {
+              "field": "part"
+            },
+            "b": {
+              "slot": "part",
+              "of": "also.instrument"
+            }
+          }
+        },
+        {
+          "fact": {
+            "field": "head"
+          }
+        },
+        {
+          "anyOf": [
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "kind"
+                  },
+                  "b": {
+                    "const": "pattern"
+                  }
+                }
+              }
+            ],
+            [
+              {
+                "equals": {
+                  "a": {
+                    "field": "kind"
+                  },
+                  "b": {
+                    "const": "interpret"
+                  }
+                }
+              },
+              {
+                "equals": {
+                  "a": {
+                    "field": "part"
+                  },
+                  "b": {
+                    "const": "synth"
+                  }
+                }
+              },
+              {
+                "of": "also.configuration",
+                "signer": [
+                  "interpreter"
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "party": {
+            "slot": "player",
+            "from": {
+              "signer": true
+            }
+          }
+        }
+      ],
+      "sends": [],
+      "attention": []
+    }
+  },
+  "receives": {},
+  "timed": {
+    "solo-expired": {
+      "on": "solo",
+      "states": [
+        "held"
+      ],
+      "deadline": "deadline",
+      "effects": [
+        {
+          "state": "ended"
+        }
+      ],
+      "attention": []
+    }
+  },
+  "rules": {
+    "contribution-form": "(fields.kind = 'tune' and $exists(fields.notes) and $count(fields.notes) > 0 and $not($exists(fields.onsets)) and $count(fields.notes[startUs + durationUs > 60000000]) = 0) or (fields.kind = 'rhythm' and $exists(fields.onsets) and $count(fields.onsets) > 0 and $not($exists(fields.notes)))",
+    "interpretation-form": "(fields.kind = 'tune' and $count(fields.rhythm) = 0 and fields.rhythmBars = 0) or (fields.kind = 'rhythm' and fields.rhythmBars > 0)",
+    "pattern-span": "$count(fields.events) > 0 and $max(fields.events.(stepUnits + lengthUnits)) <= fields.bars * 16000000",
+    "solo-length": "fields.bars <= subjects.configuration.values.soloMaxBars"
+  }
+}
