@@ -1,10 +1,12 @@
 /** Audio renders the native cue projection; it creates no musical facts. */
+import {replayCovers} from './replay-report.ts';
 import {renderNote} from './render.ts';
 import {decodePattern,type ScoreEvent} from './patterns-v2.ts';
 import type {nativeHistory} from './native.ts';
 export type NativeHistory=Awaited<ReturnType<typeof nativeHistory>>;
 const number=(x:{numerator:string;denominator:string})=>Number(BigInt(x.numerator))/Number(BigInt(x.denominator));
 export function nativeBar(history:NativeHistory,bar:number,sampleRate:number) {
+ if(!history.mapped||!history.schedule||history.replay.status!=='reported'||!history.replay.usable||!replayCovers(history.replay.report,history.scope,history.head))return null;
  if(!Number.isSafeInteger(bar)||bar<1||!Number.isFinite(sampleRate)||sampleRate<8000||sampleRate>192000)throw new Error('Invalid audio frame');
  const segment=history.schedule.segments.filter(s=>s.bar<=bar).at(-1);if(!segment)return null;
  const seconds=240000/segment.tempoMilliBpm,startSeconds=(number(segment.startUs)+(bar-segment.bar)*seconds*1000000)/1000000;

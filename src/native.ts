@@ -1,10 +1,12 @@
 /** Native identity/provenance adapter. Reads public SDK interfaces, never a local
  * Artroom checkout. Integrity and native admission are distinct from full replay. */
-import type { Entry, FactRef, ScopeRef, Sealed, SignedIntent, Grant, Beside, Receipt, DeclaredDefinition, Digest, Answer } from '@generalbusiness/artroom-contract';
+import type { Entry, FactRef, ScopeRef, Sealed, SignedIntent, Grant, Beside, Receipt, DeclaredDefinition, Digest, Answer, Head } from '@generalbusiness/artroom-contract';
 import { canonicalize, canonicalBytes, isDigest, definitionDigest, entryHash, factRefOf, scopeIdOf, timeMs, verifySignedIntent, isSignedIntentShape, isGrant, isReceipt } from '@generalbusiness/artroom-bytes';
 import { ScopeHandle } from '@generalbusiness/artroom-client';
 import { decodeContribution, validateInterpretation, type Contribution, type ScoreInterpretation } from './contributions-v2.ts';
 import {decodePattern,type ScoreEvent} from './patterns-v2.ts';
+import {unconfiguredReplay,type NativeReplay} from './native-replay.ts';
+import {replayCovers} from './replay-report.ts';
 import { recordedSchedule, type RecordedInput, type RecordedAct } from './recorded-v2.ts';
 
 export class NativeHistoryError extends Error { override readonly name = 'NativeHistoryError'; }
@@ -21,6 +23,8 @@ export interface NativeRoom {
   handle: ScopeHandle;
   /** Authenticated handles on creators; never resolved from an arbitrary URL in history. */
   creator: (ref: ScopeRef) => ScopeHandle;
+  /** Captured public code/reader configuration; absent means no playable cues. */
+  replay?: NativeReplay;
 }
 function checked(sealed: Sealed, scope: ScopeRef, seq: number): Entry {
   const e = sealed.entry;
@@ -105,7 +109,7 @@ export async function nativeHistory(room: NativeRoom) {
   if (!summary.ok || !declared.ok || !same(summary.value.scope, room.ref) || summary.value.status !== 'active' || summary.value.definition !== room.pin || definitionDigest(declared.value) !== room.pin) return refuse('Native room is not active under this declaration');
   const entries: Entry[] = [], seen = new Set<string>();
   let keptBytes = 0;
-  let cursor: string | undefined, head: { seq: number; hash: string } | null = null;
+  let cursor: string | undefined, head: Head | null = null;
   do {
     const page = await room.handle.history(cursor);
     if (!page.ok || !page.complete) return refuse('Incomplete retained native history');
@@ -140,8 +144,11 @@ export async function nativeHistory(room: NativeRoom) {
   if (!controlRead.ok) return refuse('Native confirmation source unavailable');
   const control = checked(controlRead.value, confirmed.from.at, confirmed.from.seq);
   if (!same(factRefOf(control), confirmed.from) || !control.sends.some(s => s.n === confirmed.n && same(s.to, room.ref) && same(s.message, confirmed.message))) return refuse('Native confirmation does not match its creator send');
+  const replay = room.replay ? await room.replay(room.ref, head) : unconfiguredReplay();
+  const retained = {scope:room.ref,pin:room.pin,head,entries,provenance:{genesis:factRefOf(genesis),source:input.source,send:input.n},replay};
+  if (replay.status !== 'reported' || !replay.usable || !replayCovers(replay.report,room.ref,head)) return {...retained,mapped:null,schedule:null};
   const mapped: RecordedInput<FactRef>[] = entries.map(e => ({ seq: e.seq, timeMs: timeMs(e.time)!, fact: factRefOf(e), act: act(e, entries, room.ref) }));
-  return { scope: room.ref, pin: room.pin, head, entries, mapped, schedule: recordedSchedule(mapped), provenance: { genesis: factRefOf(genesis), source: input.source, send: input.n }, replay: 'not-run' as const };
+  return {...retained,mapped,schedule:recordedSchedule(mapped)};
 }
 
 /** The app's existing private store owns one original envelope, never a second journal. */

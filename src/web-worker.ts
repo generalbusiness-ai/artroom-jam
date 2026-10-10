@@ -3,9 +3,10 @@ import {DurableObject} from 'cloudflare:workers';
 import type {Entry, SignedRead} from '@generalbusiness/artroom-contract';
 import {parseStrict,parseStrictBytes,isScopeRef,isDigest,isEntry,isSealed,isReceipt,isReadOf,isSummary,canonicalize,canonicalBytes,digestBytes,entryHash,factRefOf,intentDigest,unb64url,verifySignedRead,verifySignedIntent,takeBytes,within,LATE,timeMs} from '@generalbusiness/artroom-bytes';
 import type {Expiry} from '@generalbusiness/artroom-bytes';
+import {capturedReplayConfig} from './native-replay.ts';
 import {validateInterpretation} from './contributions-v2.ts';
 import {decodePattern} from './patterns-v2.ts';
-interface Env {ASSETS:{fetch(request:Request):Promise<Response>};ARTROOM_ORIGIN:string;JAM_CONFIG:string;AI?:{run(model:string,input:unknown):Promise<unknown>};JAM_MODEL?:string;MUSICIAN:DurableObjectNamespace}
+interface Env {ASSETS:{fetch(request:Request):Promise<Response>};ARTROOM_ORIGIN:string;JAM_CONFIG:string;JAM_REPLAY_CONFIG?:string;AI?:{run(model:string,input:unknown):Promise<unknown>};JAM_MODEL?:string;MUSICIAN:DurableObjectNamespace}
 const object=(x:unknown):x is Record<string,unknown>=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const closed=(x:unknown,keys:string[])=>object(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
 function configuration(env:Env){const value=parseStrict(env.JAM_CONFIG);if(!closed(value,['ref','pin'])||!isScopeRef((value as Record<string,unknown>)['ref'])||!isDigest((value as Record<string,unknown>)['pin']))throw new Error('Public room configuration required');return value as {ref:{scope:string;inc:string;kind:string};pin:string};}
@@ -93,6 +94,7 @@ export class Musician extends DurableObject<Env> {
 async function run(request:Request,env:Env):Promise<Response>{
  const url=new URL(request.url);
  if(url.username||url.password)return new Response('Credentials cannot be in URLs',{status:400});
+ if(url.pathname==='/jam-replay-config'){if(!env.JAM_REPLAY_CONFIG)return new Response('Actual replay configuration not supplied',{status:503});try{if(new TextEncoder().encode(env.JAM_REPLAY_CONFIG).length>16384)throw new Error('Public replay configuration too large');const value=capturedReplayConfig(parseStrict(env.JAM_REPLAY_CONFIG));if(value&&value.deployment.origin!==origin(env).origin)throw new Error('Replay metadata belongs to another native origin');return value?Response.json(value,{headers:{'cache-control':'no-store'}}):new Response('Unsupported public replay configuration',{status:422});}catch{return new Response('Unsupported public replay configuration',{status:422});}}
  if(url.pathname==='/jam-config'){try{return Response.json(configuration(env),{headers:{'cache-control':'no-store'}});}catch{return new Response('Room not configured',{status:503});}}
  if(url.pathname==='/v1/scopes'||url.pathname.startsWith('/v1/scopes/')) {
   if([...url.searchParams.keys()].some(k=>k!=='cursor'&&k!=='domain'))return new Response('Unsupported URL argument',{status:400});

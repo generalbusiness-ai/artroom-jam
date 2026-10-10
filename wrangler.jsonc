@@ -6,6 +6,6 @@
   "ai": { "binding": "AI" },
   "durable_objects": {"bindings": [{"name": "MUSICIAN", "class_name": "Musician"}]},
   "migrations": [{"tag": "jam-native-v2", "new_sqlite_classes": ["Musician"]}]
-  // Operator supplies ARTROOM_ORIGIN, JAM_CONFIG and adopted JAM_MODEL.
+  // Operator supplies ARTROOM_ORIGIN, JAM_CONFIG, actual JAM_REPLAY_CONFIG and adopted JAM_MODEL.
   // No account, room identity, grant or deployment result is invented here.
 }

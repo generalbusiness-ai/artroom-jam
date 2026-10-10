@@ -3,6 +3,7 @@ import {parseStrict,unb64url,canonicalize,canonicalBytes,digestBytes,isScopeRef,
 import {httpTransport,signedReads,ScopeHandle,secretSigner,signedIntent,signedReader,TransportError,type Signer} from '@generalbusiness/artroom-client';
 import declaration from '../definitions/jam-native-v2.json';
 import {nativeHistory,reconcileOriginal,type NativeRoom,type PendingIntent} from '../src/native.ts';
+import {capturedReplayConfig,publicNativeReplay} from '../src/native-replay.ts';
 import {nativeRevisions} from '../src/native-revisions.ts';
 import {BrowserCustody} from '../src/browser-custody.ts';
 import {nativeBar,type NativeHistory} from '../src/native-audio.ts';
@@ -20,8 +21,9 @@ function connected(){if(!connection)throw new Error('Connect first');current(con
 function stopCapture(){processor?.disconnect();microphone?.getTracks().forEach(t=>t.stop());void capture?.close();capture=undefined;microphone=undefined;processor=undefined;chunks=[];}
 async function refresh(c=connected()) {
  const read=await nativeHistory(c.room);current(c);history=read;
- $('history').textContent=read.mapped.map(e=>`${e.seq}: ${e.act.kind==='music'?e.act.name:e.act.kind} — bar ${read.schedule.cues[e.seq]?.effectBar ?? 'none'}`).join('\n');
- tell(`Recorded head ${read.head.seq}. Native provenance checked; semantic replay ${read.replay}.`);return read;
+ $('history').textContent=read.mapped?read.mapped.map(e=>`${e.seq}: ${e.act.kind==='music'?e.act.name:e.act.kind} — bar ${read.schedule?.cues[e.seq]?.effectBar ?? 'none'}`).join('\n'):read.entries.map(e=>`${e.seq}: native ${e.input.type} — no musical cue`).join('\n');
+ $('replay-report').textContent=read.replay.status==='reported'?read.replay.display:read.replay.why;
+ tell(`Recorded head ${read.head.seq}. Native provenance checked. ${read.mapped?'Exact replay coverage permits musical cues.':'Musical cues unavailable until exact consistent replay.'}`);return read;
 }
 async function connect() {
  generation++;connection=undefined;history=undefined;agentRunning=false;if(agentTimer)clearTimeout(agentTimer);lastAgentTrigger='';stopCapture();if(timer)clearTimeout(timer);
@@ -31,8 +33,14 @@ async function connect() {
  const signer=secretSigner(unb64url($<HTMLInputElement>('secret').value));$<HTMLInputElement>('secret').value='';
  const session=$<HTMLInputElement>('session').value;$<HTMLInputElement>('session').value='';if(!session)throw new Error('Repository read session required for complete multi-actor history');
  const transport=signedReads(httpTransport(location.origin,{fetch:async(url,init)=>{const response=await fetch(url,{...init,redirect:'error'});if(response.redirected||response.url!==url)throw new TransportError('Wrong native response route');return response;}}),signer);
+ const replayResponse=await fetch('/jam-replay-config');
+ if(!replayResponse.ok&&replayResponse.status!==503)throw new Error(replayResponse.status===422?'Unsupported native replay code configuration':'Actual native replay configuration unavailable');
+ let replayConfig=null;
+ if(replayResponse.ok){if(!replayResponse.body)throw new Error('Public replay configuration unavailable');const raw=await within(30,signal=>takeBytes(replayResponse.body!,16384,signal));if(raw===LATE||raw===null)throw new Error('Public replay configuration exceeds bounds');replayConfig=capturedReplayConfig(parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(raw)));}
+ if(replayResponse.ok&&!replayConfig)throw new Error('Unsupported public replay configuration');
  const c:Connection={generation:own,signer,custody:new BrowserCustody(`${config.ref.scope}:${config.ref.inc}:${signer.key}`),room:{ref:config.ref,pin:config.pin,declaration:declaration as DeclaredDefinition,handle:new ScopeHandle(transport,config.ref.scope,session),creator:ref=>new ScopeHandle(transport,ref.scope,session)}};
- if(own!==generation)throw new Error('Connection changed');connection=c;nextBar=1;await refresh(c);
+ if(own!==generation)throw new Error('Connection changed');connection=c;
+ if(replayConfig)c.room.replay=publicNativeReplay(replayConfig,location.origin,()=>session,async(url,init)=>{current(c);const response=await fetch(url,{...init,redirect:'error'});if(response.redirected||response.url!==url){try{void response.body?.getReader().cancel().catch(()=>undefined);}catch{}throw new TransportError('Wrong replay response route');}return response;},()=>current(c));nextBar=1;await refresh(c);
  const poll=async()=>{if(connection!==c)return;try{await refresh(c);}catch(error){if(connection===c)tell(error instanceof Error?error.message:'Native history unavailable');}if(connection===c)timer=setTimeout(poll,1500);};timer=setTimeout(poll,1500);
 }
 /** Save before dispatch; all awaits keep the same captured actor, scope and private store. */
@@ -62,16 +70,17 @@ async function submit(kind:string,fields:Record<string,FieldValue>,on:number|nul
 }
 async function model(kind:'interpret'|'pattern',permit:()=>void=()=>undefined) {
  permit();
- const c=connected();let read=await refresh(c);current(c);let original=await c.custody.load();current(c);
+ const c=connected();let read=await refresh(c);current(c);if(!read.mapped||!read.schedule)throw new Error('Exact consistent replay required before choosing a musical proposal');let original=await c.custody.load();current(c);
  if(original?.signed.intent.kind!=='musician-request') {
   const context=read.entries.slice(-8),part=$<HTMLSelectElement>('part').value;
   await submit('musician-request',{kind,part,instrument:Number($<HTMLInputElement>('item').value),contextDigest:digestBytes(canonicalBytes(context)),head:read.mapped.at(-1)!.fact},null,undefined,permit);current(c);
-  original=await c.custody.load();current(c);read=await refresh(c);
+  original=await c.custody.load();current(c);read=await refresh(c);if(!read.mapped||!read.schedule)throw new Error('Exact consistent replay required; original retained');
  }
  if(!original||original.signed.intent.kind!=='musician-request'||original.signed.intent.fields['kind']!==kind)throw new Error('Check the original model request of its own kind');
  const resolution=await reconcileOriginal(c.room.handle,c.custody,c.room.ref,c.signer.key,()=>current(c));current(c);
  if(resolution.status!=='recorded')throw new Error('Original model request is not known accepted');
  original=await c.custody.load();current(c);if(!original?.receipt)throw new Error('Original native receipt unavailable');
+ const mapped=read.mapped;if(!mapped||!read.schedule)throw new Error('Exact consistent replay required; original retained');
  const head=original.signed.intent.fields['head'] as {seq:number};
  const context=read.entries.slice(Math.max(0,head.seq-7),head.seq+1);
  if(digestBytes(canonicalBytes(context))!==original.signed.intent.fields['contextDigest'])throw new Error('Original context unavailable');
@@ -89,16 +98,16 @@ async function model(kind:'interpret'|'pattern',permit:()=>void=()=>undefined) {
  const providerOriginal=intentDigest(original.signed.intent);
  permit();
  if(kind==='interpret') {
-  const pending=read.mapped.filter(e=>e.seq<=head.seq&&e.act.kind==='sing'&&!read.mapped.some(i=>i.act.kind==='interpret'&&i.act.sing===e.seq)).at(-1);
+  const pending=mapped.filter(e=>e.seq<=head.seq&&e.act.kind==='sing'&&!mapped.some(i=>i.act.kind==='interpret'&&i.act.sing===e.seq)).at(-1);
   if(!pending)throw new Error('No original pending contribution');await submit('interpret',proposed,pending.seq,providerOriginal,permit);
  }else{
-  const latest=read.mapped.filter(e=>e.seq<=head.seq&&e.act.kind==='interpret').at(-1);if(!latest)throw new Error('No original interpretation');
+  const latest=mapped.filter(e=>e.seq<=head.seq&&e.act.kind==='interpret').at(-1);if(!latest)throw new Error('No original interpretation');
   await submit('pattern',{...proposed,instrument:original.signed.intent.fields['instrument']!,follows:latest.fact},null,providerOriginal,permit);
  }
 }
 function play() {
  if(!audio)return;
- if(history?.schedule.origin) {
+ if(history?.schedule?.origin) {
   const origin=history.entries[history.schedule.origin.seq];
   if(origin)for(let n=0;n<2;n++) {
    const frame=nativeBar(history,nextBar,audio.sampleRate);if(!frame)break;
@@ -129,11 +138,11 @@ $('start-musician').onclick=()=>void perform(async()=>{
   if(busy){agentTimer=setTimeout(step,1500);return;}
   busy=true;
   try {
-   const read=await refresh(c);current(c);
+   const read=await refresh(c);current(c);const mapped=read.mapped;if(!mapped||!read.schedule)throw new Error('Exact consistent replay required for the musician');
    const part=$<HTMLSelectElement>('part').value;
-   const pending=read.mapped.filter(e=>e.act.kind==='sing'&&!read.mapped.some(i=>i.act.kind==='interpret'&&i.act.sing===e.seq)).at(-1);
-   const interpretation=read.mapped.filter(e=>e.act.kind==='interpret').at(-1);
-   const direction=read.mapped.filter(e=>e.act.kind==='music'&&['mood','solo','end-solo'].includes(e.act.name)).at(-1);
+   const pending=mapped.filter(e=>e.act.kind==='sing'&&!mapped.some(i=>i.act.kind==='interpret'&&i.act.sing===e.seq)).at(-1);
+   const interpretation=mapped.filter(e=>e.act.kind==='interpret').at(-1);
+   const direction=mapped.filter(e=>e.act.kind==='music'&&['mood','solo','end-solo'].includes(e.act.name)).at(-1);
    const trigger=part==='synth'&&pending?'sing:'+pending.seq:interpretation?`pattern:${interpretation.seq}:${direction?.seq ?? -1}`:'';
    if(trigger&&trigger!==lastAgentTrigger){lastAgentTrigger=trigger;await model(trigger.startsWith('sing:')?'interpret':'pattern',()=>{current(c);if(!agentRunning)throw new Error('Musician paused; original retained');});}
   }catch(error){agentRunning=false;tell((error instanceof Error?error.message:'Musician unavailable')+'; musician paused. Check the original request before restarting.');}
