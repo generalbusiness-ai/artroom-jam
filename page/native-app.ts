@@ -51,6 +51,7 @@ async function submit(kind:string,fields:Record<string,FieldValue>,on:number|nul
  const c=connected();permit();
  return navigator.locks.request(c.custody.identity,async()=>{
   current(c);permit();const original=await c.custody.load();current(c);
+  if(providerOriginal&&(!original||intentDigest(original.signed.intent)!==providerOriginal))throw new Error('A newer original is active; the earlier model proposal stays in its own history');
   if(original) {
    const resolution=await reconcileOriginal(c.room.handle,c.custody,c.room.ref,c.signer.key,()=>current(c));current(c);
    if(resolution.status!=='recorded'&&resolution.status!=='refused')throw new Error('An original outcome remains unknown; reconcile it before any new signature');
@@ -60,8 +61,9 @@ async function submit(kind:string,fields:Record<string,FieldValue>,on:number|nul
   if(!summary.ok||canonicalize(summary.value.scope)!==canonicalize(c.room.ref)||summary.value.status!=='active'||summary.value.definition!==c.room.pin)throw new Error('Current native state unavailable');
   const expected=nativeRevisions(c.room.declaration,kind,on,fields,summary.value);
   const grants=parseStrict($<HTMLTextAreaElement>('grants').value);if(!Array.isArray(grants)||grants.length>32||!grants.every(isGrant))throw new Error('Native grants required');
+  const custodyVersion=await c.custody.snapshot();current(c);
   current(c);permit();const signed=await signedIntent(c.signer,{to:c.room.ref,kind,on,expected,fields});current(c);
-  const pending:PendingIntent={signed,grants,beside:{}};await c.custody.save(pending);current(c);permit();
+  const pending:PendingIntent={signed,grants,beside:{}};await c.custody.save(pending,custodyVersion);current(c);permit();
   let answer;try{answer=await c.room.handle.submit(signed,grants,pending.beside);}catch{throw new Error('Original outcome unknown; retained signed request was not replaced');}
   // Even after navigation, record this captured original's answer in its own store.
   if(answer.answer==='refused'){await c.custody.save({...pending,refusal:answer});throw new Error('Native refusal: '+answer.reason+'; original judgment retained');}
@@ -98,6 +100,8 @@ async function model(kind:'interpret'|'pattern',permit:()=>void=()=>undefined) {
  const proposed=parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(raw)) as Record<string,FieldValue>;
  if(kind==='interpret')validateInterpretation(proposed as never);else decodePattern(proposed['bars'] as number,proposed['events'] as never);
  await c.custody.save({...original,provider:{status:'proposed',proposal:proposed}});current(c);
+ const activeOriginal=await c.custody.load();current(c);
+ if(!activeOriginal||canonicalize(activeOriginal.signed)!==canonicalize(original.signed))throw new Error('Earlier model proposal retained in its own history; a newer original remains active');
  const providerOriginal=intentDigest(original.signed.intent);
  permit();
  if(kind==='interpret') {
