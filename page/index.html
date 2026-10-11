@@ -3,25 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jam room</title>
+<title>dap</title>
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="brand/favicon.ico">
+<link rel="stylesheet" href="brand/tokens.css">
+<link rel="stylesheet" href="brand/fonts.css">
 <style>
   :root { color-scheme: light; }
-  body { margin: 0 auto; max-width: 820px; padding: 16px; background: #fff; color: #222; font: 16px/1.4 system-ui, sans-serif; }
-  svg { width: 100%; height: auto; display: block; }
+  body { margin: 0 auto; max-width: 820px; padding: 16px; background: var(--dap-bg); color: var(--dap-fg); font: 16px/1.4 var(--dap-font-sans); }
+  svg.stage { width: 100%; height: auto; display: block; }
   .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
-  select { font: inherit; padding: 8px; border: 2px solid #222; border-radius: 8px; }
-  button { font: inherit; padding: 8px 16px; border: 2px solid #222; background: #fff; border-radius: 8px; cursor: pointer; }
-  button:active { background: #eee; }
+  select { font: inherit; padding: 8px; border: 2px solid var(--dap-line); border-radius: 0; }
+  button { font: inherit; padding: 8px 16px; border: 2px solid var(--dap-accent); background: var(--dap-green); color: var(--dap-white); border-radius: 0; cursor: pointer; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%); }
+  button:active { background: var(--dap-green-deep); }
+  button:focus-visible { clip-path: none; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--dap-accent); outline-offset: 3px; }
+  select, input { background: var(--dap-bg); color: var(--dap-fg); }
+  .identity { display: flex; align-items: center; gap: 24px; }
+  .wordmark { width: 96px; height: auto; padding: 12px; background: var(--dap-bg); }
+  .wordmark-dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .wordmark-light { display: none; }
+    :root:not([data-theme="light"]) .wordmark-dark { display: block; }
+  }
+  :root[data-theme="dark"] .wordmark-light { display: none; }
+  :root[data-theme="dark"] .wordmark-dark { display: block; }
+  h1 { font-size: 24px; }
+  #ack, #pending, #bar, label { font: 14px/1.4 var(--dap-font-label); }
+  #ack { min-height: 1.4em; margin: 4px 0; color: var(--dap-accent); }
+  .entry-marker { display: inline-block; width: 8px; height: 8px; border: 1px solid currentColor; transform: rotate(45deg); margin-right: 8px; }
+  .entry-marker.recorded { background: currentColor; }
   #mood { margin: 0; }
-  #mood input { font: inherit; padding: 8px; border: 2px solid #222; border-radius: 8px; width: 16em; max-width: 100%; box-sizing: border-box; }
+  #mood input { font: inherit; padding: 8px; border: 2px solid var(--dap-line); border-radius: 0; width: 16em; max-width: 100%; box-sizing: border-box; }
   #bar { font-variant-numeric: tabular-nums; }
-  #status, #pending { color: #555; margin: 4px 0; min-height: 1.4em; }
+  #status, #pending { color: var(--dap-mute); margin: 4px 0; min-height: 1.4em; }
   #captions { min-height: 4.5em; font-size: 20px; }
   #captions p { margin: 2px 0; }
 </style>
 </head>
 <body>
-<svg viewBox="0 0 800 400" role="img" aria-label="Three players at a table in a white room">
+<header class="identity"><span class="identity-mark"><img class="wordmark wordmark-light" src="brand/dap-wordmark-green.svg" alt="dap"><img class="wordmark wordmark-dark" src="brand/dap-wordmark-white.svg" alt="dap"></span><h1>Jam room · local procedural demo</h1></header>
+<p>This demo runs locally in your browser. Its musicians are procedural. No dap room, AI model or microphone is connected.</p>
+<svg class="stage" viewBox="0 0 800 400" role="img" aria-label="Three players at a table in a white room">
   <!-- the room -->
   <line x1="0" y1="350" x2="800" y2="350" stroke="#ccc" stroke-width="2"/>
   <g transform="translate(90 80)" stroke="#bbb" stroke-linecap="round">
@@ -71,12 +94,12 @@
       <rect x="72" y="10" width="9" height="12"/><rect x="83" y="10" width="9" height="12"/><rect x="94" y="10" width="9" height="12"/>
       <rect x="105" y="10" width="9" height="12"/><rect x="116" y="10" width="9" height="12"/><rect x="127" y="10" width="9" height="12"/>
     </g>
-    <circle cx="12" cy="5" r="3" fill="#f90"/><circle cx="24" cy="5" r="3" fill="#f90"/><circle cx="36" cy="5" r="3" fill="#f90"/>
+    <circle cx="12" cy="5" r="3" fill="var(--dap-accent)"/><circle cx="24" cy="5" r="3" fill="var(--dap-accent)"/><circle cx="36" cy="5" r="3" fill="var(--dap-accent)"/>
   </g>
   <g id="drum-pad" transform="translate(360 230)">
     <rect width="90" height="20" rx="3" fill="#333"/>
-    <circle cx="14" cy="10" r="7" fill="#e55"/><circle cx="35" cy="10" r="7" fill="#5c5"/>
-    <circle cx="56" cy="10" r="7" fill="#55e"/><circle cx="77" cy="10" r="7" fill="#ec5"/>
+    <circle cx="14" cy="10" r="7" fill="var(--dap-green-deep)"/><circle cx="35" cy="10" r="7" fill="var(--dap-accent)"/>
+    <circle cx="56" cy="10" r="7" fill="var(--dap-green-tint)"/><circle cx="77" cy="10" r="7" fill="var(--dap-mute)"/>
   </g>
 
   <!-- the lead stands at the end of the table with a guitar -->
@@ -111,6 +134,7 @@
 </div>
 <p id="status">Choose an original phrase and press "play phrase". Both phrases and the rhythm are application-owned symbolic fixtures. No microphone or model is used.</p>
 <p id="pending"></p>
+<p id="ack" role="status"></p>
 <div id="captions" aria-live="polite"></div>
 
 <script type="module" src="app.ts"></script>
