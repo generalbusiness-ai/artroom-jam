@@ -112,7 +112,10 @@ export async function nativeHistory(room: NativeRoom) {
   let cursor: string | undefined, head: Head | null = null;
   do {
     const page = await room.handle.history(cursor);
-    if (!page.ok || !page.complete) return refuse('Incomplete retained native history');
+    if (!page.ok) return refuse('Incomplete retained native history');
+    const next = page.next;
+    if (next !== undefined && (typeof next !== 'string' || next.length === 0)) return refuse('Invalid native history cursor');
+    if (!page.complete && next === undefined) return refuse('Incomplete retained native history');
     if (head && !same(page.at, head)) return refuse('History pages have different frontiers');
     head = page.at;
     for (const sealed of page.value) {
@@ -124,7 +127,7 @@ export async function nativeHistory(room: NativeRoom) {
       if (entry.input.type === 'act' && !await verifySignedIntent(entry.input.signed)) return refuse('Native act signature is invalid');
       entries.push(entry);
     }
-    cursor = page.next;
+    cursor = next;
     if (cursor && seen.has(cursor)) return refuse('History cursor repeated');
     if (cursor) seen.add(cursor);
   } while (cursor);

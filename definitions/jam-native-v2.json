@@ -2096,6 +2096,6 @@
     "contribution-form": "(fields.kind = 'tune' and $exists(fields.notes) and $count(fields.notes) > 0 and $not($exists(fields.onsets)) and $count(fields.notes[startUs + durationUs > 60000000]) = 0) or (fields.kind = 'rhythm' and $exists(fields.onsets) and $count(fields.onsets) > 0 and $not($exists(fields.notes)))",
     "interpretation-form": "(fields.kind = 'tune' and $count(fields.rhythm) = 0 and fields.rhythmBars = 0) or (fields.kind = 'rhythm' and fields.rhythmBars > 0)",
     "pattern-span": "$count(fields.events) > 0 and $max(fields.events.(stepUnits + lengthUnits)) <= fields.bars * 16000000",
-    "solo-length": "fields.bars <= subjects.configuration.values.soloMaxBars"
+    "solo-length": "fields.bars <= subjects.`also.configuration`.values.soloMaxBars"
   }
 }
