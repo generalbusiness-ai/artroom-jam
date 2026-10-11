@@ -6,7 +6,7 @@ import {TRUSTS} from '@generalbusiness/artroom-replay';
 import {replayCovers} from '../src/replay-report.ts';
 test('a report permits cues only for exact complete replay coverage without anchors or missing dependencies (pure predicate, no native authority)',()=>{
  const digest=digestBytes(new Uint8Array([1]));
- const scope:ScopeRef={scope:scopeIdOf({v:1,kind:'lane',definition:digest,creator:null,cause:digest,ordinal:0}),inc:newIncarnation(),kind:'lane'};
+ const scope:ScopeRef={scope:scopeIdOf({v:1,kind:'lane',definition:digest,creator:null,cause:digest,ordinal:0}),inc:newIncarnation(new Uint8Array(16)),kind:'lane'};
  const head:Head={seq:3,hash:digestBytes(new Uint8Array([2]))};
  const report:Report={mode:'replay',target:{at:scope,...head},coverage:[{scope,from:0,through:3}],anchors:[],dependencies:{verified:1,anchored:0,missing:[]},trusts:[TRUSTS.clock],redacted:[],result:'consistent'};
  assert.equal(replayCovers(report,scope,head),true);
@@ -14,7 +14,7 @@ test('a report permits cues only for exact complete replay coverage without anch
  assert.equal(replayCovers({...report,mode:'integrity'},scope,head),false);
  for(const result of ['mismatch','missing-dependency','unsupported-definition','incomplete'] as const)assert.equal(replayCovers({...report,result},scope,head),false);
  assert.equal(replayCovers({...report,target:{...report.target,hash:digestBytes(new Uint8Array([3]))}},scope,head),false);
- assert.equal(replayCovers({...report,target:{...report.target,at:{...scope,inc:newIncarnation()}}},scope,head),false);
+ assert.equal(replayCovers({...report,target:{...report.target,at:{...scope,inc:newIncarnation(new Uint8Array(16).fill(1))}}},scope,head),false);
  assert.equal(replayCovers({...report,coverage:[{scope,from:1,through:3}]},scope,head),false);
  assert.equal(replayCovers({...report,coverage:[{scope,from:0,through:2}]},scope,head),false);
  assert.equal(replayCovers({...report,anchors:[report.target]},scope,head),false);
