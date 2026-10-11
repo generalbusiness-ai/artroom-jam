@@ -98,7 +98,26 @@ function draw(): void {
   }
   updateCaptions(stage.captions);
   const waiting = stage.pending.map((p) => `${p.kind} from bar ${p.effectBar}`).join(', ');
-  $('#pending').textContent = waiting ? `waiting: ${waiting}` : '';
+  const pending = $('#pending');
+  pending.replaceChildren();
+  if (waiting) {
+    const marker = document.createElement('span');
+    marker.className = 'entry-marker';
+    marker.setAttribute('aria-hidden', 'true');
+    pending.append(marker, `waiting: ${waiting}`);
+  }
+  const ack = $('#ack');
+  const effect = stage.effected;
+  if (ack.getAttribute('data-entry') !== String(effect?.seq ?? '')) {
+    ack.replaceChildren();
+    ack.setAttribute('data-entry', String(effect?.seq ?? ''));
+    if (effect) {
+      const marker = document.createElement('span');
+      marker.className = 'entry-marker recorded';
+      marker.setAttribute('aria-hidden', 'true');
+      ack.append(marker, `Step ${effect.seq} took effect at bar ${effect.effectBar}.`, document.createElement('br'), 'dap.');
+    }
+  }
   requestAnimationFrame(draw);
 }
 

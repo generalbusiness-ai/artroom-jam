@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { request } from 'node:http';
 import { once } from 'node:events';
 import { createInterface } from 'node:readline';
-import { advance, createLive, singNow } from '../page/live.ts';
+import { advance, createLive, singNow, moodNow } from '../page/live.ts';
 import { stageAt } from '../page/view.ts';
 import { RHYTHM, THEME } from '../src/phrases.ts';
 import { barStart, schedule } from '../src/record.ts';
@@ -113,7 +113,7 @@ test('the local preview refuses malformed URI escapes and still serves the page'
     assert.deepEqual(invalidUrl, [400, 'bad request']);
     const page = await fetch(url);
     assert.equal(page.status, 200);
-    assert.ok((await page.text()).includes('<title>Jam room</title>'));
+    assert.ok((await page.text()).includes('<title>dap</title>'));
   } finally {
     if (server.exitCode === null && server.signalCode === null) {
       const exited = once(server, 'exit');
@@ -122,4 +122,20 @@ test('the local preview refuses malformed URI escapes and still serves the page'
     }
     lines.close();
   }
+});
+
+// An ahead-of-time render cannot acknowledge a future effect.
+test('the acknowledgement waits for the effect bar and keeps the entry identity', () => {
+  const live = createLive();
+  const effectBar = singNow(live, 0, { kind: 'tune', notes: THEME });
+  const { log, rules } = live.band;
+  const sing = log.entries.find(entry => entry.type === 'sing')!;
+  advance(live, barStart(log, effectBar, rules) - 0.25, 0.5);
+  assert.equal(stageAt(log, barStart(log, effectBar, rules) - 0.01, rules).effected, undefined);
+  assert.deepEqual(stageAt(log, barStart(log, effectBar, rules), rules).effected, { seq: sing.seq, effectBar });
+  const time = barStart(log, effectBar, rules) + 0.1;
+  const moodBar = moodNow(live, time, 'detroit techno');
+  const mood = log.entries.findLast(entry => entry.type === 'mood')!;
+  assert.deepEqual(stageAt(log, time, rules).effected, { seq: sing.seq, effectBar });
+  assert.deepEqual(stageAt(log, barStart(log, moodBar, rules), rules).effected, { seq: mood.seq, effectBar: moodBar });
 });

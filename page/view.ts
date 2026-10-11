@@ -24,6 +24,8 @@ export interface Stage {
   arrived: Record<Part, boolean>;
   captions: Caption[];
   pending: Pending[];
+  // The latest person's entry whose effect bar has actually arrived.
+  effected?: { seq: number; effectBar: number };
 }
 
 // How many bars a line of banter stays up.
@@ -40,6 +42,7 @@ export function stageAt(log: Log, time: number, rules: Rules = DEFAULT_RULES): S
 
   const captions: Caption[] = [];
   const pending: Pending[] = [];
+  let effected: Stage['effected'];
   for (const { entry, effectBar } of schedule(log, rules).entries) {
     if (entry.type === 'say' && effectBar <= bar && effectBar > bar - CAPTION_BARS) {
       captions.push({ by: entry.by, text: entry.text });
@@ -47,6 +50,9 @@ export function stageAt(log: Log, time: number, rules: Rules = DEFAULT_RULES): S
     // A mood shows from its effect bar, with any fallback.
     if (entry.type === 'mood' && effectBar <= bar && effectBar > bar - CAPTION_BARS) {
       captions.push({ by: 'the room says', text: moodCaption(entry.text) });
+    }
+    if ((entry.type === 'sing' || entry.type === 'mood') && effectBar <= bar) {
+      effected = { seq: entry.seq, effectBar };
     }
     if (entry.type === 'sing' && effectBar > bar) pending.push({ kind: entry.kind, effectBar });
   }
@@ -60,5 +66,6 @@ export function stageAt(log: Log, time: number, rules: Rules = DEFAULT_RULES): S
     arrived,
     captions: captions.slice(-3),
     pending,
+    effected,
   };
 }
