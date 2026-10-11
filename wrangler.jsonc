@@ -1,5 +1,5 @@
 {
-  "name": "artroom-jam",
+  "name": "artroom-jam-native",
   "main": "src/web-worker.ts",
   "compatibility_date": "2026-08-15",
   "assets": { "directory": "./dist", "binding": "ASSETS" },
