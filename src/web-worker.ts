@@ -1,7 +1,7 @@
 /** Fixed native origin and a natively admitted musician request before model cost. */
 import {DurableObject} from 'cloudflare:workers';
 import type {Entry, SignedRead} from '@generalbusiness/artroom-contract';
-import {parseStrict,parseStrictBytes,isScopeRef,isDigest,isEntry,isSealed,isReceipt,isReadOf,isSummary,canonicalize,canonicalBytes,digestBytes,entryHash,factRefOf,intentDigest,unb64url,verifySignedRead,verifySignedIntent,takeBytes,within,LATE,timeMs} from '@generalbusiness/artroom-bytes';
+import {parseStrict,parseStrictBytes,isScopeRef,isDigest,isEntry,isSealed,isReceipt,isRead,isSummary,canonicalize,canonicalBytes,digestBytes,entryHash,factRefOf,intentDigest,unb64url,verifySignedRead,verifySignedIntent,takeBytes,within,LATE,timeMs} from '@generalbusiness/artroom-bytes';
 import type {Expiry} from '@generalbusiness/artroom-bytes';
 import {capturedReplayConfig} from './native-replay.ts';
 import {validateInterpretation} from './contributions-v2.ts';
@@ -15,7 +15,7 @@ async function bytes(body:ReadableStream<Uint8Array>|null,limit:number,exchange?
 function secured(response:Response){const headers=new Headers(response.headers);headers.set('x-content-type-options','nosniff');headers.set('referrer-policy','no-referrer');headers.set('permissions-policy','microphone=(self)');headers.set('content-security-policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; media-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");return new Response(response.body,{status:response.status,headers});}
 function reader(header:string|null,scope:string,read:string,arg:string):SignedRead {
  if(!header?.startsWith('Signed ')||header.length>4096)throw new Error('Exact signed native reader required');
- const value=parseStrictBytes(unb64url(header.slice(7))) as SignedRead;
+ const decoded=unb64url(header.slice(7));if(decoded===null)throw new Error('Invalid signed native reader encoding');const value=parseStrictBytes(decoded) as SignedRead;
  if(!closed(value,['request','sig'])||!closed(value.request,['v','to','actor','read','arg','notAfter'])||value.request.v!==1||value.request.to!==scope||value.request.read!==read||value.request.arg!==arg||!verifySignedRead(value))throw new Error('Wrong native reader');
  return value;
 }
@@ -35,7 +35,7 @@ async function admitted(request:Request,env:Env) {
  if(who.request.actor!==summaryWho.request.actor)throw new Error('Different actor');
  const read=await nativeRead(env,encodeURIComponent(config.ref.scope)+'/entries/'+receipt.fact.seq,authorization!);
  const summary=await nativeRead(env,encodeURIComponent(config.ref.scope),summaryAuthorization!);
- if(!isReadOf(isSealed)(read)||!read.ok||!isReadOf(isSummary)(summary)||!summary.ok||summary.value.status!=='active'||canonicalize(summary.value.scope)!==canonicalize(config.ref)||summary.value.definition!==config.pin)throw new Error('Native room unavailable');
+ if(!isRead(isSealed)(read)||!read.ok||!isRead(isSummary)(summary)||!summary.ok||summary.value.status!=='active'||canonicalize(summary.value.scope)!==canonicalize(config.ref)||summary.value.definition!==config.pin)throw new Error('Native room unavailable');
  const entry=read.value.entry;
  if(entryHash(entry)!==read.value.hash||canonicalize(factRefOf(entry))!==canonicalize(receipt.fact)||entry.input.type!=='act'||entry.input.signed.intent.kind!=='musician-request'||entry.input.signed.intent.actor!==who.request.actor||receipt.intent!==intentDigest(entry.input.signed.intent)||canonicalize(receipt.effects)!==canonicalize(entry.effects))throw new Error('Exact accepted musician request required');
  const nativeInput=entry.input,signed=nativeInput.signed,fields=signed.intent.fields;
@@ -68,7 +68,7 @@ export class Musician extends DurableObject<Env> {
      return await bytes(stream,32768,signal);
     });
     if(generated===LATE)return new Response('Model outcome unknown; no native act submitted',{status:503});
-    const framed=new TextDecoder('utf-8',{fatal:true}).decode(generated);
+    const framed=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(generated);
     let text='',ended=false;
     for(const block of framed.replace(/\r\n/g,'\n').split('\n\n')) {
      if(!block.trim())continue;
