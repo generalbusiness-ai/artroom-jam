@@ -84,7 +84,10 @@ test('native history continues a bounded page to a complete frontier and refuses
   async entry(scope,reader,seq){assert.equal(scope,directory.scope);assert.equal(reader,'fixture-reader');parentReads.push(seq);const entry=seq===17?origin:seq===18?control:null;if(!entry)return{ok:false,reason:'not-found'};return{ok:true,at:{seq:18,hash:entryHash(control)},value:{entry,hash:entryHash(entry)},complete:true};},
  };
  const room:NativeRoom={ref,pin,declaration:declared,handle:new ScopeHandle(transport,ref.scope,'fixture-reader'),creator:at=>{assert.deepEqual(at,directory);return new ScopeHandle(transport,at.scope,'fixture-reader');},replay:async(at,captured)=>{assert.deepEqual(at,ref);assert.deepEqual(captured,head);replayCalls++;return{status:'not-configured',usable:false,why:'Fixture supplies no replay authority'};}};
- const read=await nativeHistory(room);
+ const success:{value?:Awaited<ReturnType<typeof nativeHistory>>}={};
+ await assert.doesNotReject(async()=>{success.value=await nativeHistory(room);},'A valid continuation must reach the complete native frontier');
+ const read=success.value;
+ assert.ok(read);
  assert.deepEqual(cursors,[undefined,'next-page']);
  assert.equal(read.entries.length,HISTORY_PAGE_ENTRIES+1);
  assert.deepEqual(read.head,head);
