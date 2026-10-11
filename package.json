@@ -12,5 +12,13 @@
     "clip": "node scripts/clip.ts",
     "page": "node scripts/serve-page.ts",
     "build": "node scripts/build.ts"
+  },
+  "devDependencies": {
+    "@generalbusiness/artroom-bytes": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-bytes-0.1.0-dev.2.tgz",
+    "@generalbusiness/artroom-client": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-client-0.1.0-dev.2.tgz",
+    "@generalbusiness/artroom-contract": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-contract-0.1.0-dev.2.tgz",
+    "@generalbusiness/artroom-derive": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-derive-0.1.0-dev.2.tgz",
+    "@generalbusiness/artroom-platform": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-platform-0.1.0-dev.2.tgz",
+    "@generalbusiness/artroom-replay": "file:vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-replay-0.1.0-dev.2.tgz"
   }
 }

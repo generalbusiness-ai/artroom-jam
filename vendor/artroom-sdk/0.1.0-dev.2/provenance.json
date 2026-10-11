@@ -1,0 +1,70 @@
+{
+  "classification": "Digest-pinned staged development SDK; not registry publication",
+  "plannerDecision": "git:sha1:589bca982736a2361d15d53f7572375ef2f7aaf3#git:sha1:1144d3d0a5561d051c4bd6584f24bb64ba570d41",
+  "artroomSource": {
+    "head": "3bd18314efed78ee757b5b2f9d5bdb3198250c1d",
+    "tree": "0be9f4dae4c8f60ee5074275b9e18c7eb77add2a"
+  },
+  "originalProducerCheckerExecution": 94781,
+  "producerExit": 0,
+  "checkerExit": 0,
+  "publicProjectionSHA256": "845e2b9a037b3fcf9d4e070adfdee03d9dd0205a733deff99c1e459405ea4ddb",
+  "packages": [
+    {
+      "name": "@generalbusiness/artroom-bytes",
+      "version": "0.1.0-dev.2",
+      "bytes": 31385,
+      "sha256": "3ad60c796b2185876c395db38ee4bbf661c01ced8438fe539db5d249b6399db6",
+      "integrity": "sha512-WG0tZ7B1kJYl4nG4ikEGKOoHgq9ZV1d44OJ8ipcFNpatq6L/P98l+WfrawBtaZRdQ6cNAXz7FLV2iUWRjpSwAA==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-bytes-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@generalbusiness/artroom-client",
+      "version": "0.1.0-dev.2",
+      "bytes": 36474,
+      "sha256": "47de0e5da487dc592470b0e82aa4fcb26ecd6092c97dc3118f0d267420101a11",
+      "integrity": "sha512-5arNE5TBAsi5bPcvkkRwS2DYd0Wsc2b1SFoQnTsew2ZaIcggFNmWUa4rM9nyFbFpcPBqaXK6VN5sIL9VLrP8RA==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-client-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@generalbusiness/artroom-contract",
+      "version": "0.1.0-dev.2",
+      "bytes": 33218,
+      "sha256": "fbf2ce4d8cdd14c85fa2b802a6ff8b9df9e0b625fdfd270df20ec8352a1c6a58",
+      "integrity": "sha512-pNt4ilZh6mdlo8jcARWx7t1oo02j+XMRngv97P7f1PdYjRho4eXQfUB10T1uAzGN2UVTa11/tCEaALnG/+UXlA==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-contract-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@generalbusiness/artroom-derive",
+      "version": "0.1.0-dev.2",
+      "bytes": 346672,
+      "sha256": "7c271437a8c529828969e775880a1efdb999e911d50531816639f546e5934f21",
+      "integrity": "sha512-BBIoRK1lMAMC4gV8sZWa2a4p9xLOTpu2g23/IvZeajPnVGhWbjOPQGLqOx4s1Xxu7OAppx8CPAnUed+0iXmQvw==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-derive-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@generalbusiness/artroom-platform",
+      "version": "0.1.0-dev.2",
+      "bytes": 142408,
+      "sha256": "5475050193dae3b31b2e7d176cc1e7ebcfd08e47e9d57b3cfe2e114087e085b7",
+      "integrity": "sha512-584qElfjKtv47Oe6hyu8vklz/uVm44D4roxQm1FrVbQDQY0lSh0fHgmloIIFQIBjrR+xRqHsy2Nbg/4344yOTw==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-platform-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@generalbusiness/artroom-replay",
+      "version": "0.1.0-dev.2",
+      "bytes": 47151,
+      "sha256": "2ecc290a509cc248272fd70bb60ba478a630f7723f50a087cb42ea0081b31256",
+      "integrity": "sha512-ew/xAqYtt1ZlOvBiPFIlc3U9bXmBZx4wyG24raU+yPLNF7R9oj5FAm8DMY4PgxuoDrL87klvxZtzezDUk2KElA==",
+      "path": "vendor/artroom-sdk/0.1.0-dev.2/generalbusiness-artroom-replay-0.1.0-dev.2.tgz",
+      "license": "Apache-2.0"
+    }
+  ],
+  "license": "Apache-2.0; upstream package license/notice files remain inside each exact archive",
+  "noPublicationClaim": true
+}
