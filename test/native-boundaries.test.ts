@@ -51,7 +51,7 @@ test('native history continues a bounded page to a complete frontier and refuses
  const seed:Seed={v:1,kind:'lane',definition:pin,creator:directory,cause:d('c'),ordinal:0};
  const ref:ScopeRef={scope:scopeIdOf(seed),inc:newIncarnation(new Uint8Array(16).fill(21)),kind:'lane'};
  const signed=(to:ScopeRef,kind:string,key:string)=>signIntent({v:1,to,actor:keys.rita.key,kind,on:null,expected:{},fields:{text:'own fixture cue'},idempotencyKey:key,notAfter:'2026-10-04T12:01:00Z'},keys.rita.secret);
- const create={class:'request' as const,type:'create',body:{fields:{opener:keys.rita.member,interpreter:keys.rita.member,lookaheadMs:1000}}};
+ const create={class:'request' as const,type:'create' as const,body:{fields:{opener:keys.rita.member,interpreter:keys.rita.member,lookaheadMs:1000}}};
  // Parent entries are explicitly scripted provenance, not native creation proof.
  const origin=forged(directory,17,{type:'act',signed:signed(directory,'create','origin'),authority:[],presented:{}},[{n:0,to:seed,message:create}]).entry;
  const source=factRefOf(origin);
