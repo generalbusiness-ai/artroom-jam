@@ -6,6 +6,7 @@ import type {Expiry} from '@generalbusiness/artroom-bytes';
 import {capturedReplayConfig} from './native-replay.ts';
 import {validateInterpretation} from './contributions-v2.ts';
 import {decodePattern} from './patterns-v2.ts';
+import {musicianResponse} from './musician-response.ts';
 interface Env {ASSETS:{fetch(request:Request):Promise<Response>};ARTROOM_ORIGIN:string;JAM_CONFIG:string;JAM_REPLAY_CONFIG?:string;AI?:{run(model:string,input:unknown):Promise<unknown>};JAM_MODEL?:string;MUSICIAN:DurableObjectNamespace}
 const object=(x:unknown):x is Record<string,unknown>=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const closed=(x:unknown,keys:string[])=>object(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
@@ -102,8 +103,7 @@ async function run(request:Request,env:Env):Promise<Response>{
  }
  if(url.pathname==='/musician'&&request.method==='POST') {
   if(url.search)return new Response('Credentials cannot be in URLs',{status:400});
-  try{const value=await admitted(request,env);return await env.MUSICIAN.get(env.MUSICIAN.idFromName(value.id)).fetch(new Request('https://musician.internal/',{method:'POST',body:canonicalize(value)}));}
-  catch{return new Response('Exact native musician request unavailable; no provider dispatch',{status:403});}
+  return await musicianResponse(()=>admitted(request,env),value=>env.MUSICIAN.get(env.MUSICIAN.idFromName(value.id)).fetch(new Request('https://musician.internal/',{method:'POST',body:canonicalize(value)})));
  }
  return env.ASSETS.fetch(request);
 }
