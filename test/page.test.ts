@@ -113,7 +113,7 @@ test('the local preview refuses malformed URI escapes and still serves the page'
     assert.deepEqual(invalidUrl, [400, 'bad request']);
     const page = await fetch(url);
     assert.equal(page.status, 200);
-    assert.ok((await page.text()).includes('<title>dap</title>'));
+    assert.ok((await page.text()).includes('<title>dap - jam</title>'));
   } finally {
     if (server.exitCode === null && server.signalCode === null) {
       const exited = once(server, 'exit');
