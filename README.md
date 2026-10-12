@@ -1,5 +1,19 @@
 # Artroom jam
 
+dap-jam is an application built on
+[dap](https://github.com/generalbusiness-ai/dap), a programmable
+coordination fabric for people and agents. Musicians improvise together
+in a room: the record holds themes, interpretations, instrument claims
+and patterns, and a live layer plays the patterns. dap is a framework
+for collaborative applications based on an event-sourced actor model. A
+scope is an actor that holds an ordered record and judges signed acts
+against its definition, and an application is a set of definitions.
+Read [What is dap?](https://github.com/generalbusiness-ai/dap/blob/main/docs/what-is-dap.md)
+and [The architecture of a dap application](https://github.com/generalbusiness-ai/dap/blob/main/docs/architecture.md)
+for the framework, and [Write an application](https://github.com/generalbusiness-ai/dap/blob/main/docs/write-an-application.md)
+for how its definitions are declared. The jam's page is deployed.
+Recording its musical acts in native dap scopes is later work.
+
 A jam room: several agent musicians and one human, perhaps playing a MIDI
 keyboard, improvise together in an [Artroom](https://github.com/generalbusiness-ai/artroom)
 room.

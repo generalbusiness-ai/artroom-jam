@@ -14,6 +14,10 @@ test('live/clip demo defaults use the exact application-owned symbolic fixtures 
   assert.equal(CLIP_SINGS[1].phrase.kind === 'rhythm' && CLIP_SINGS[1].phrase.onsets, RHYTHM);
   assert.deepEqual(RHYTHM, [{time:0,cls:'low'},{time:0.25,cls:'high'},{time:0.5,cls:'high'},{time:0.75,cls:'low'},{time:1,cls:'high'},{time:1.25,cls:'low'},{time:1.5,cls:'high'},{time:1.75,cls:'high'}]);
   const html=readFileSync(new URL('../page/index.html',import.meta.url),'utf8');
+  const wordmark=/<a class="identity-mark" href="https:\/\/dap\.generalbusiness\.ai\/" aria-label="dap homepage">([\s\S]*?)<\/a>/.exec(html);
+  assert.ok(wordmark, 'the Jam logo is one link to the dap homepage');
+  assert.equal((wordmark[1].match(/<img /g)??[]).length,2);
+
   for(const tune of ORIGINAL_TUNES) assert.ok(html.includes(`value="${tune.id}"`));
   assert.ok(html.includes('No microphone or model is used'));
 });
